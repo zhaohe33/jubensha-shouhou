@@ -11,6 +11,36 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 SKIP_DIRS = {".git", ".git.bak-hub", "__pycache__", "pages"}
+# GitHub Pages is often slow/blocked in CN; serve media via jsDelivr
+CDN_BASE = "https://cdn.jsdelivr.net/gh/zhaohe33/jubensha-shouhou@main/"
+PAGES_BASE = "https://zhaohe33.github.io/jubensha-shouhou/"
+
+# Map original video paths -> ASCII media/*.mp4 for reliable web playback
+VIDEO_ALIASES = {
+    "暗夜降至/车允智/金在秀/6a51b0d719effa4cabff8b7776fe4f2d.mp4": "media/anye-jinzaixiu.mp4",
+    "空山/李逸/花想容/bc5c6664746526f8eee4b9f1b1915346.mp4": "media/kongshan-huaxiangrong.mp4",
+    "空山/李逸/阿绿姑娘/ee9c7ad14a3dd9ddaffa0000c26286aa.mp4": "media/kongshan-aluniang.mp4",
+    "流氓叙事/蒋伯驾/程走柳/视频.mp4": "media/liumang-chengzouliu.mp4",
+}
+
+
+def cdn_url(rel_posix_path: str) -> str:
+    """Build a jsDelivr URL for a repo-relative posix path."""
+    parts = rel_posix_path.replace("\\", "/").split("/")
+    return CDN_BASE + "/".join(urllib.parse.quote(p) for p in parts if p)
+
+
+def pages_url(rel_posix_path: str) -> str:
+    parts = rel_posix_path.replace("\\", "/").split("/")
+    return PAGES_BASE + "/".join(urllib.parse.quote(p) for p in parts if p)
+
+
+def video_play_url(rel_posix_path: str) -> str:
+    """Prefer ASCII media/ alias; fall back to Pages URL."""
+    alias = VIDEO_ALIASES.get(rel_posix_path.replace("\\", "/"))
+    if alias and (ROOT / alias).exists():
+        return pages_url(alias)
+    return pages_url(rel_posix_path)
 
 LETTER_CSS = """
 :root {
@@ -267,7 +297,7 @@ def depth_prefix(rel_path: str) -> str:
 
 
 def write_rich_page(entry: dict) -> None:
-    """Adapt an existing immersive page into pages/ with fixed asset paths."""
+    """Adapt an existing immersive page into pages/ with CDN asset paths."""
     src = ROOT / entry["rich_src"]
     out = ROOT / entry["view_rel"]
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -275,10 +305,11 @@ def write_rich_page(entry: dict) -> None:
     folder = entry["folder"]
     text = src.read_text(encoding="utf-8")
 
-    text = text.replace('src="images/', f'src="{prefix}{folder}/images/')
-    text = text.replace("src='images/", f"src='{prefix}{folder}/images/")
-    text = text.replace('src="music/', f'src="{prefix}{folder}/music/')
-    text = text.replace("src='music/", f"src='{prefix}{folder}/music/")
+    # Rewrite local asset folders to jsDelivr for reliable playback
+    text = text.replace('src="images/', f'src="{cdn_url(folder + "/images/")}')
+    text = text.replace("src='images/", f"src='{cdn_url(folder + '/images/')}")
+    text = text.replace('src="music/', f'src="{cdn_url(folder + "/music/")}')
+    text = text.replace("src='music/", f"src='{cdn_url(folder + '/music/')}")
 
     back = (
         f'<a href="{prefix}index.html" style="position:fixed;top:1rem;left:1rem;z-index:50;'
@@ -313,25 +344,41 @@ def write_letter_page(entry: dict) -> None:
         shown_images = [entry["remote_image"]]
 
     for v in entry["videos"]:
-        media_blocks.append(
-            f'        <video controls playsinline src="{html.escape(prefix + v)}"></video>'
-        )
+        alias = VIDEO_ALIASES.get(v.replace("\\", "/"))
+        if alias and (ROOT / alias).exists():
+            abs_src = pages_url(alias)
+            rel_src = prefix + alias
+            media_blocks.append(
+                "        <video controls playsinline preload=\"metadata\">\n"
+                f'          <source src="{html.escape(abs_src)}" type="video/mp4" />\n'
+                f'          <source src="{html.escape(rel_src)}" type="video/mp4" />\n'
+                "        </video>\n"
+                f'        <a class="pdf" href="{html.escape(abs_src)}" target="_blank" rel="noopener">若无法播放，点此打开/下载视频</a>'
+            )
+        else:
+            src = pages_url(v)
+            media_blocks.append(
+                f'        <video controls playsinline preload="metadata" src="{html.escape(src)}"></video>\n'
+                f'        <a class="pdf" href="{html.escape(src)}" target="_blank" rel="noopener">若无法播放，点此打开/下载视频</a>'
+            )
     for img in shown_images:
-        src = img if img.startswith("http") else prefix + img
+        src = img if img.startswith("http") else cdn_url(img)
         media_blocks.append(
             f'        <img src="{html.escape(src)}" alt="{html.escape(entry["title"])}" />'
         )
     for audio in entry.get("audios") or []:
+        src = cdn_url(audio)
         media_blocks.append(
-            f'        <audio controls src="{html.escape(prefix + audio)}"></audio>'
+            f'        <audio controls preload="metadata" src="{html.escape(src)}"></audio>'
         )
     if entry.get("youtube"):
         media_blocks.append(
             f'        <a class="pdf" href="{html.escape(entry["youtube"])}" target="_blank" rel="noopener">打开背景音乐</a>'
         )
     for pdf in entry["pdfs"]:
+        src = cdn_url(pdf)
         media_blocks.append(
-            f'        <a class="pdf" href="{html.escape(prefix + pdf)}" target="_blank" rel="noopener">打开附件 PDF</a>'
+            f'        <a class="pdf" href="{html.escape(src)}" target="_blank" rel="noopener">打开附件 PDF</a>'
         )
     media_html = ""
     if media_blocks:
