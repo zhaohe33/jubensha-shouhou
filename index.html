@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
@@ -11,7 +11,6 @@
   <style>
     :root {
       --ink: #100e0c;
-      --ink-lift: #1c1814;
       --paper: #efe6d6;
       --paper-soft: #cfc3ae;
       --fade: rgba(239, 230, 214, 0.55);
@@ -19,11 +18,8 @@
       --seal-soft: rgba(156, 47, 42, 0.55);
       --line: rgba(239, 230, 214, 0.16);
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     html { scroll-behavior: smooth; }
-
     body {
       font-family: "Noto Serif SC", "Songti SC", serif;
       color: var(--paper);
@@ -31,333 +27,135 @@
       line-height: 1.8;
       overflow-x: hidden;
     }
-
     body::before {
       content: "";
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
       background:
         radial-gradient(ellipse 80% 55% at 12% 8%, rgba(120, 48, 40, 0.22), transparent 55%),
         radial-gradient(ellipse 70% 50% at 88% 18%, rgba(70, 58, 40, 0.2), transparent 50%),
         radial-gradient(ellipse 90% 55% at 50% 100%, rgba(40, 34, 28, 0.55), transparent 60%),
         linear-gradient(180deg, #0c0a09 0%, #14110e 45%, #0f0d0b 100%);
     }
-
     body::after {
       content: "";
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      opacity: 0.055;
+      position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.055;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
-
-    .page {
-      position: relative;
-      z-index: 2;
-    }
-
-    /* —— Hero —— */
+    .page { position: relative; z-index: 2; }
     .hero {
-      min-height: 100vh;
-      min-height: 100dvh;
-      display: grid;
-      place-items: center;
-      text-align: center;
-      padding: 4rem 1.4rem 3rem;
-      position: relative;
+      min-height: 100vh; min-height: 100dvh;
+      display: grid; place-items: center; text-align: center;
+      padding: 4rem 1.4rem 3rem; position: relative;
     }
-
-    .hero-inner {
-      max-width: 40rem;
-    }
-
     .hero-brand {
       font-family: "Ma Shan Zheng", cursive;
       font-size: clamp(3.6rem, 14vw, 6.2rem);
-      letter-spacing: 0.22em;
-      line-height: 1;
-      margin-left: 0.22em;
-      opacity: 0;
-      animation: rise 1.3s ease 0.15s forwards;
+      letter-spacing: 0.22em; line-height: 1; margin-left: 0.22em;
+      opacity: 0; animation: rise 1.3s ease 0.15s forwards;
     }
-
     .hero-line {
-      width: 2.4rem;
-      height: 1px;
-      margin: 1.7rem auto 1.5rem;
-      background: var(--seal);
-      opacity: 0;
-      animation: fadeIn 1s ease 0.65s forwards;
+      width: 2.4rem; height: 1px; margin: 1.7rem auto 1.5rem; background: var(--seal);
+      opacity: 0; animation: fadeIn 1s ease 0.65s forwards;
     }
-
     .hero-lead {
       font-size: clamp(1rem, 2.8vw, 1.15rem);
-      letter-spacing: 0.28em;
-      color: var(--paper-soft);
-      opacity: 0;
-      animation: rise 1.2s ease 0.85s forwards;
+      letter-spacing: 0.28em; color: var(--paper-soft);
+      opacity: 0; animation: rise 1.2s ease 0.85s forwards;
     }
-
     .hero-cta {
-      margin-top: 2.4rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.7rem;
-      padding: 0.85rem 1.45rem;
-      border: 1px solid rgba(239, 230, 214, 0.35);
-      background: rgba(239, 230, 214, 0.04);
-      color: var(--paper);
-      text-decoration: none;
-      font-size: 0.92rem;
-      letter-spacing: 0.32em;
+      margin-top: 2.4rem; display: inline-flex; align-items: center; gap: 0.7rem;
+      padding: 0.85rem 1.45rem; border: 1px solid rgba(239, 230, 214, 0.35);
+      background: rgba(239, 230, 214, 0.04); color: var(--paper);
+      text-decoration: none; font-size: 0.92rem; letter-spacing: 0.32em;
       transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
-      opacity: 0;
-      animation: rise 1.1s ease 1.2s forwards;
+      opacity: 0; animation: rise 1.1s ease 1.2s forwards;
     }
-
     .hero-cta:hover {
       border-color: rgba(239, 230, 214, 0.7);
       background: rgba(239, 230, 214, 0.09);
       transform: translateY(-2px);
     }
-
-    .hero-cta span {
-      font-size: 1.05rem;
-      line-height: 1;
-    }
-
     .scroll-hint {
-      position: absolute;
-      bottom: 1.8rem;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.78rem;
-      letter-spacing: 0.35em;
-      color: var(--fade);
-      opacity: 0;
-      animation: pulseHint 2.4s ease 2s infinite;
+      position: absolute; bottom: 1.8rem; left: 50%; transform: translateX(-50%);
+      font-size: 0.78rem; letter-spacing: 0.35em; color: var(--fade);
+      opacity: 0; animation: pulseHint 2.4s ease 2s infinite;
     }
-
-    /* —— Collection —— */
-    .collection {
-      max-width: 920px;
-      margin: 0 auto;
-      padding: 1rem 1.4rem 5.5rem;
-    }
-
-    .section-head {
-      text-align: center;
-      margin-bottom: 2.8rem;
-      opacity: 0;
-      transform: translateY(18px);
-      transition: opacity 0.9s ease, transform 0.9s ease;
-    }
-
-    .section-head.is-in {
-      opacity: 1;
-      transform: none;
-    }
-
+    .collection { max-width: 920px; margin: 0 auto; padding: 1rem 1.4rem 5.5rem; }
+    .script-block { margin-bottom: 3.4rem; }
+    .script-head { text-align: center; margin-bottom: 1.6rem; }
     .section-kicker {
-      font-size: 0.78rem;
-      letter-spacing: 0.42em;
-      color: var(--seal-soft);
-      margin-bottom: 0.7rem;
+      font-size: 0.78rem; letter-spacing: 0.42em; color: var(--seal-soft); margin-bottom: 0.55rem;
     }
-
     .section-title {
       font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(2rem, 6vw, 2.8rem);
-      letter-spacing: 0.18em;
-      margin-left: 0.18em;
+      font-size: clamp(1.9rem, 5.5vw, 2.6rem);
+      letter-spacing: 0.18em; margin-left: 0.18em;
     }
-
-    .section-desc {
-      margin-top: 0.85rem;
-      color: var(--fade);
-      letter-spacing: 0.12em;
-      font-size: 0.95rem;
-    }
-
-    .entries {
-      display: flex;
-      flex-direction: column;
-      gap: 1.35rem;
-    }
-
+    .section-desc { margin-top: 0.55rem; color: var(--fade); letter-spacing: 0.12em; font-size: 0.9rem; }
+    .entries { display: flex; flex-direction: column; gap: 1.1rem; }
     .entry {
-      position: relative;
-      display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.2fr);
-      min-height: 240px;
-      text-decoration: none;
-      color: inherit;
-      overflow: hidden;
-      isolation: isolate;
-      border: 1px solid var(--line);
-      background: rgba(28, 24, 20, 0.55);
-      opacity: 0;
-      transform: translateY(28px);
-      transition:
-        opacity 0.9s ease,
-        transform 0.9s ease,
-        border-color 0.35s ease,
-        background 0.35s ease;
+      position: relative; display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
+      min-height: 188px; text-decoration: none; color: inherit; overflow: hidden;
+      border: 1px solid var(--line); background: rgba(28, 24, 20, 0.55);
+      opacity: 0; transform: translateY(22px);
+      transition: opacity 0.9s ease, transform 0.9s ease, border-color 0.35s ease, background 0.35s ease;
     }
-
-    .entry.is-in {
-      opacity: 1;
-      transform: none;
-    }
-
-    .entry:hover {
-      border-color: rgba(239, 230, 214, 0.38);
-      background: rgba(36, 30, 24, 0.72);
-    }
-
-    .entry-visual {
-      position: relative;
-      min-height: 220px;
-      overflow: hidden;
-    }
-
+    .entry.is-in, .script-block.is-in .entry { opacity: 1; transform: none; }
+    .script-block.reveal { opacity: 0; transform: translateY(18px); transition: opacity .9s ease, transform .9s ease; }
+    .script-block.is-in { opacity: 1; transform: none; }
+    .entry:hover { border-color: rgba(239, 230, 214, 0.38); background: rgba(36, 30, 24, 0.72); }
+    .entry-visual { position: relative; min-height: 170px; overflow: hidden; background: #1a1612; }
     .entry-visual img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transform: scale(1.04);
-      transition: transform 1.1s ease;
-      filter: saturate(0.85) contrast(1.05);
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transform: scale(1.04); transition: transform 1.1s ease; filter: saturate(0.85) contrast(1.05);
     }
-
-    .entry:hover .entry-visual img {
-      transform: scale(1.1);
+    .entry:hover .entry-visual img { transform: scale(1.1); }
+    .entry-visual--plain {
+      display: grid; place-items: center;
+      font-family: "Ma Shan Zheng", cursive; font-size: 2.4rem; color: rgba(239,230,214,.28);
+      letter-spacing: 0.2em;
     }
-
-    .entry-visual::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, transparent 40%, rgba(16, 14, 12, 0.35) 100%);
-      pointer-events: none;
-    }
-
     .entry-body {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 1.8rem 1.7rem 1.8rem 1.5rem;
-      gap: 0.55rem;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 1.35rem 1.4rem 1.35rem 1.25rem; gap: 0.4rem;
     }
-
-    .entry-script {
-      font-size: 0.78rem;
-      letter-spacing: 0.36em;
-      color: var(--seal);
-    }
-
+    .entry-script { font-size: 0.74rem; letter-spacing: 0.28em; color: var(--seal); }
     .entry-name {
       font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(2rem, 5vw, 2.55rem);
-      letter-spacing: 0.16em;
-      margin-left: 0.12em;
-      line-height: 1.15;
+      font-size: clamp(1.7rem, 4.2vw, 2.2rem);
+      letter-spacing: 0.14em; margin-left: 0.1em; line-height: 1.15;
     }
-
-    .entry-blurb {
-      color: var(--paper-soft);
-      font-size: 0.95rem;
-      letter-spacing: 0.06em;
-      max-width: 26rem;
-    }
-
+    .entry-blurb { color: var(--paper-soft); font-size: 0.92rem; letter-spacing: 0.05em; }
     .entry-go {
-      margin-top: 0.9rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      font-size: 0.82rem;
-      letter-spacing: 0.28em;
-      color: var(--fade);
+      margin-top: 0.65rem; display: inline-flex; align-items: center; gap: 0.45rem;
+      font-size: 0.8rem; letter-spacing: 0.28em; color: var(--fade);
       transition: color 0.3s ease, gap 0.3s ease;
     }
-
-    .entry:hover .entry-go {
-      color: var(--paper);
-      gap: 0.7rem;
-    }
-
+    .entry:hover .entry-go { color: var(--paper); gap: 0.7rem; }
     .entry-seal {
-      position: absolute;
-      top: 1.1rem;
-      right: 1.1rem;
-      width: 3.1rem;
-      height: 3.1rem;
-      border: 1.5px solid var(--seal-soft);
-      color: var(--seal);
-      display: grid;
-      place-items: center;
-      font-family: "Ma Shan Zheng", cursive;
-      font-size: 1.15rem;
-      letter-spacing: 0.08em;
-      transform: rotate(12deg);
-      opacity: 0.75;
-      pointer-events: none;
+      position: absolute; top: 0.9rem; right: 0.9rem; width: 2.6rem; height: 2.6rem;
+      border: 1.5px solid var(--seal-soft); color: var(--seal);
+      display: grid; place-items: center; font-family: "Ma Shan Zheng", cursive;
+      font-size: 0.95rem; transform: rotate(12deg); opacity: 0.7; pointer-events: none;
     }
-
     footer {
-      text-align: center;
-      padding: 0 1.4rem 3.2rem;
-      color: rgba(239, 230, 214, 0.35);
-      font-size: 0.78rem;
-      letter-spacing: 0.22em;
+      text-align: center; padding: 0 1.4rem 3.2rem;
+      color: rgba(239, 230, 214, 0.35); font-size: 0.78rem; letter-spacing: 0.22em;
     }
-
     @keyframes rise {
       from { opacity: 0; transform: translateY(22px); }
       to { opacity: 1; transform: none; }
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes pulseHint {
       0%, 100% { opacity: 0.22; transform: translateX(-50%) translateY(0); }
       50% { opacity: 0.55; transform: translateX(-50%) translateY(5px); }
     }
-
     @media (max-width: 720px) {
-      .entry {
-        grid-template-columns: 1fr;
-        min-height: 0;
-      }
-
-      .entry-visual {
-        min-height: 190px;
-      }
-
-      .entry-visual::after {
-        background: linear-gradient(180deg, transparent 35%, rgba(16, 14, 12, 0.55) 100%);
-      }
-
-      .entry-body {
-        padding: 1.35rem 1.25rem 1.55rem;
-      }
-
-      .entry-seal {
-        top: 0.9rem;
-        right: 0.9rem;
-        width: 2.6rem;
-        height: 2.6rem;
-        font-size: 1rem;
-      }
+      .entry { grid-template-columns: 1fr; min-height: 0; }
+      .entry-visual { min-height: 150px; }
+      .entry-body { padding: 1.15rem 1.15rem 1.35rem; }
     }
   </style>
 </head>
@@ -368,68 +166,239 @@
         <h1 class="hero-brand">售后</h1>
         <div class="hero-line" aria-hidden="true"></div>
         <p class="hero-lead">局终之后，信仍未完</p>
-        <a class="hero-cta" href="#collection">
-          进入合集
-          <span aria-hidden="true">↓</span>
-        </a>
+        <a class="hero-cta" href="#collection">进入合集 <span aria-hidden="true">↓</span></a>
       </div>
       <p class="scroll-hint">下滑浏览</p>
     </header>
 
     <main class="collection" id="collection">
-      <div class="section-head reveal">
-        <p class="section-kicker">AFTER SALE</p>
-        <h2 class="section-title">现有售后</h2>
-        <p class="section-desc">点开一封信，走进一场局的余韵</p>
-      </div>
-
-      <div class="entries">
-        <a class="entry reveal" href="贪欢武宁/index.html">
-          <div class="entry-visual">
-            <img src="贪欢武宁/images/spring.jpg" alt="贪欢 · 春分戏蝶" />
-          </div>
+      
+      <section class="script-block reveal">
+        <div class="script-head">
+          <p class="section-kicker">SCRIPT</p>
+          <h2 class="section-title">如故</h2>
+          <p class="section-desc">2 封售后</p>
+        </div>
+        <div class="entries">
+          
+        <a class="entry reveal" href="pages/如故/李文瑙/卫子谣/index.html">
+          <div class="entry-visual entry-visual--plain"><span>信</span></div>
           <div class="entry-body">
-            <p class="entry-script">剧本 · 贪欢</p>
+            <p class="entry-script">我方 · 李文瑙</p>
+            <h3 class="entry-name">致卫子谣</h3>
+            <p class="entry-blurb">自那场生死棋局一别，便再无音讯，你近来可好？轮回将至，有些藏在心底的话，终究想告诉你…</p>
+            <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">如故</div>
+        </a>
+        <a class="entry reveal" href="pages/如故/李文瑙/连世疆/index.html">
+          <div class="entry-visual entry-visual--plain"><span>信</span></div>
+          <div class="entry-body">
+            <p class="entry-script">我方 · 李文瑙</p>
+            <h3 class="entry-name">致连世疆</h3>
+            <p class="entry-blurb">哥哥，算了——我还是更喜欢叫你弟弟。</p>
+            <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">如故</div>
+        </a>
+        </div>
+      </section>
+      <section class="script-block reveal">
+        <div class="script-head">
+          <p class="section-kicker">SCRIPT</p>
+          <h2 class="section-title">暗夜降至</h2>
+          <p class="section-desc">1 封售后</p>
+        </div>
+        <div class="entries">
+          
+        <a class="entry reveal" href="pages/暗夜降至/车允智/售后/index.html">
+          <div class="entry-visual entry-visual--plain"><span>信</span></div>
+          <div class="entry-body">
+            <p class="entry-script">我方 · 车允智</p>
+            <h3 class="entry-name">车允智 · 售后</h3>
+            <p class="entry-blurb">视频售后</p>
+            <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">暗夜</div>
+        </a>
+        </div>
+      </section>
+      <section class="script-block reveal">
+        <div class="script-head">
+          <p class="section-kicker">SCRIPT</p>
+          <h2 class="section-title">洗劫伦敦所有的玫瑰</h2>
+          <p class="section-desc">1 封售后</p>
+        </div>
+        <div class="entries">
+          
+        <a class="entry reveal" href="pages/洗劫伦敦所有的玫瑰/阿尔芒/斯黛拉/index.html">
+          <div class="entry-visual entry-visual--plain"><span>信</span></div>
+          <div class="entry-body">
+            <p class="entry-script">我方 · 阿尔芒</p>
+            <h3 class="entry-name">致斯黛拉</h3>
+            <p class="entry-blurb">斯黛拉，见字如面。</p>
+            <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">洗劫</div>
+        </a>
+        </div>
+      </section>
+      <section class="script-block reveal">
+        <div class="script-head">
+          <p class="section-kicker">SCRIPT</p>
+          <h2 class="section-title">洗劫罗马所有的情书</h2>
+          <p class="section-desc">1 封售后</p>
+        </div>
+        <div class="entries">
+          
+        <a class="entry reveal" href="pages/洗劫罗马所有的情书/维托/黛琳/index.html">
+          <div class="entry-visual entry-visual--plain"><span>信</span></div>
+          <div class="entry-body">
+            <p class="entry-script">我方 · 维托</p>
+            <h3 class="entry-name">致黛琳</h3>
+            <p class="entry-blurb">亲爱的黛琳</p>
+            <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">洗劫</div>
+        </a>
+        </div>
+      </section>
+      <section class="script-block reveal">
+        <div class="script-head">
+          <p class="section-kicker">SCRIPT</p>
+          <h2 class="section-title">流氓叙事</h2>
+          <p class="section-desc">4 封售后</p>
+        </div>
+        <div class="entries">
+          
+        <a class="entry reveal" href="pages/流氓叙事/程聿怀/黛利拉/index.html">
+          <div class="entry-visual entry-visual--plain"><span>信</span></div>
+          <div class="entry-body">
+            <p class="entry-script">我方 · 程聿怀</p>
+            <h3 class="entry-name">致黛利拉</h3>
+            <p class="entry-blurb">没想到吧，你竟会收到我的来信。</p>
+            <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">流氓</div>
+        </a>
+        <a class="entry reveal" href="pages/流氓叙事/程聿怀/程走柳/index.html">
+          <div class="entry-visual entry-visual--plain"><span>信</span></div>
+          <div class="entry-body">
+            <p class="entry-script">我方 · 程聿怀</p>
+            <h3 class="entry-name">致程走柳</h3>
+            <p class="entry-blurb">程走柳，我的同怀</p>
+            <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">流氓</div>
+        </a>
+        <a class="entry reveal" href="pages/流氓叙事/蒋伯驾/程走柳/index.html">
+          <div class="entry-visual entry-visual--plain"><span>信</span></div>
+          <div class="entry-body">
+            <p class="entry-script">我方 · 蒋伯驾</p>
+            <h3 class="entry-name">致程走柳</h3>
+            <p class="entry-blurb">在蒋伯驾去世后的几个月里，程走柳始终沉浸在悲伤之中，迟迟无法接受这个事实。</p>
+            <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">流氓</div>
+        </a>
+        <a class="entry reveal" href="pages/流氓叙事/蒋伯驾/缪宏谟/index.html">
+          <div class="entry-visual"><img src="流氓叙事/蒋伯驾/缪宏谟/0c007671bb0e112e1da943bb431d99f5.jpg" alt="" /></div>
+          <div class="entry-body">
+            <p class="entry-script">我方 · 蒋伯驾</p>
+            <h3 class="entry-name">致缪宏谟</h3>
+            <p class="entry-blurb">图文售后</p>
+            <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">流氓</div>
+        </a>
+        </div>
+      </section>
+      <section class="script-block reveal">
+        <div class="script-head">
+          <p class="section-kicker">SCRIPT</p>
+          <h2 class="section-title">空山</h2>
+          <p class="section-desc">2 封售后</p>
+        </div>
+        <div class="entries">
+          
+        <a class="entry reveal" href="pages/空山/李逸/花想容/index.html">
+          <div class="entry-visual entry-visual--plain"><span>信</span></div>
+          <div class="entry-body">
+            <p class="entry-script">我方 · 李逸</p>
+            <h3 class="entry-name">致花想容</h3>
+            <p class="entry-blurb">视频售后</p>
+            <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">空山</div>
+        </a>
+        <a class="entry reveal" href="pages/空山/李逸/阿绿姑娘/index.html">
+          <div class="entry-visual entry-visual--plain"><span>信</span></div>
+          <div class="entry-body">
+            <p class="entry-script">我方 · 李逸</p>
+            <h3 class="entry-name">致阿绿姑娘</h3>
+            <p class="entry-blurb">视频售后</p>
+            <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">空山</div>
+        </a>
+        </div>
+      </section>
+      <section class="script-block reveal">
+        <div class="script-head">
+          <p class="section-kicker">SCRIPT</p>
+          <h2 class="section-title">贪欢</h2>
+          <p class="section-desc">1 封售后</p>
+        </div>
+        <div class="entries">
+          
+        <a class="entry reveal" href="贪欢/林江/武宁/index.html">
+          <div class="entry-visual"><img src="贪欢/林江/武宁/images/spring.jpg" alt="" /></div>
+          <div class="entry-body">
+            <p class="entry-script">我方 · 林江</p>
             <h3 class="entry-name">致武宁</h3>
-            <p class="entry-blurb">往后的山河岁月，我都想与你一起走过。</p>
+            <p class="entry-blurb">售后</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">贪欢</div>
         </a>
-
-        <a class="entry reveal" href="https://zhaohe33.github.io/jubensha-aftersale/?s=eyJ5IjoiaHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g_dj1odnB2VFdKTUtCZyIsInQiOiLoh7TpmL_llpwiLCJjIjoi6IOG5bCP6ay877yM5qyi6L-O5Zue5Yiw546w5a6e5LiW55WM44CCXG5cbuS9oOabvue7j-mXrui_h-aIke-8jOiLj-aXoOaBmeeIsei_h-mYv-WWnOWQl--8n-aIkeWRiuivieS9oO-8jOaIkeWvueS9oOeahOaDheaEn-abtOWDj-aYr-WvueWmueWmue-8jOiAjOmdnueIseS6uuOAguS9oOaYr-aXoOWQr-awkeeahOWkp-elreWPuO-8jOawuOi_nOaYr-acgOe-juOAgeacgOe6r-eyueeahOmCo-S4quWWhOS6uuOAguaIkeayoeazleWvueS9oOeUn-WHuuaBi-S6uueahOeIseaEj--8jOWboOS4uumCo-aXtueahOS9oO-8jOagueacrOS4jeaHgueIseOAglxu5Zua5b6S5ZGK6K-J5oiR6K-05LuW54ix5L2g77yM5oOz55So6Ieq5bex55qE55Sf5ZG95p2l5ouv5pWR5L2g44CC5oiR5Ziy56yR5LuW6K-077yM5LiA5Liq5LiN5oeC54ix55qE5Lq677yM5oCO5LmI5Y675ouv5pWR5aW544CC5LuW6K-06YKj5bCx5Lqk57uZ5L2g5LqG5oiR55qE5pyL5Y-L77yM5aW55LiN5oeC54ix77yM5bCx55Sx5L2g5p2l5pWZ5aW55LuA5LmI5piv54ix44CC5oiR6Lqr5Li65pS26JeP5a6277yM5Y-q6KeJ5b6X6L-Z5piv5LiA5Lu25Y2B5YiG5pyJ6Laj44CB5p6B5YW35oyR5oiY55qE5ri45oiP44CC5LqO5piv5L2c5Li66ZqQ6JePQk9TU--8jOaIkeW6lOS4i-S6huWbmuW-kueahOivt-axgu-8jOaOpeS4i-S6huWSjOmYv-mHkeeahOi_meWcuuS6pOaYk-OAglxu5oiR6K-06L-H77yM5oiR6L-Z5Liq5Lq677yM5pyA5L-h5a6I5om_6K-644CC5Zug5q2k77yM5oiR5b-F6aG75Lqy5omL5pWZ5Lya5L2g5Lik5qC35Lic6KW_77yM5LiN5q2i5pyJ54ix77yM6L-Y5pyJ5oGo44CC5Y-q5pyJ6K6p5L2g5oul5pyJ54ix5oGo5oOF5LuH77yM5piO55m95L2V5Li656eB5b-D77yM5oiR5omN6IO95bCG5L2g5LuO6L-R5LmO56We5piO55y35peP55qE5peg5ZCv5rCR77yM5Y-Y5oiQ5LiA5Liq5pmu5pmu6YCa6YCa44CB6IO95aSf6KKr5ouv5pWR55qE5Lq644CCXG7lpoLkvZXmlZnkvJrkvaDniLHlkaLvvJ_lhbblrp7moLnmnKzkuI3nlKjmiJHmlZnvvIzmiJHku6znmoTpmL_llpzlp5HlqJjlkJHmnaXniLHnnYDov5nkuJbpl7TkuIfnianjgILmiJHpnIDopoHmlZnkvaDnmoTvvIzmmK_oh6rnp4HjgILpgqPmgajvvIzlj4jor6XmgI7moLfmlZnvvJ9cbuiDjOWPm--8jOe-nui-seOAglxu6L-Z5piv5oiR6IO95oOz5Yiw6KeB5pWI5pyA5b-r55qE5pa55byP44CC5Zyo5L2g5a-55oiR5YWo54S25L6d6LWW44CB5ruh5b-D5L-h5Lu755qE5pe25YCZ77yM57uZ5L2g5pyA5rex44CB5pyA55eb55qE5LiA5Zy65Y-b5Y-Y44CCXG7lj6_miJHnnJ_nmoTmr6vkuI3lnKjmhI_lkJfvvJ_kuI3nn6Xku47kvZXml7botbfvvIzmiJHmhaLmhaLlvIDlp4vlnKjkuY7kvaDjgILmiJborrjmmK_liJ3op4HkvaDnmoTnrKzkuIDnnLzvvIzmiJborrjmmK_mrKHmrKHmiqTkvaDlkajlhajnmoTnnqzpl7TvvIzlj4jmiJborrjmmK_kvaDotaDkuojmiJHpnZLkuJ3nmoTpgqPkuIDliLvjgILmiJHkvJrlnKjmhI_kvaDlvIDkuI3lvIDlv4PjgIHpmr7kuI3pmr7ov4fjgIJcbuaIkeWIhuS4jea4hei_meWIsOW6leaYr-S4jeaYr-eIse-8jOaIkeWPquefpemBk-aIkeaXoOavlOWcqOS5juS9oOOAguS9huavlOi1t-i_meS7veW_g-aEj--8jOaIkeabtOWcqOS5juaIkeeahOebrueahOKAlOKAlOaIkeimgeiuqeS9oOWtpuS8muaBqO-8jOiuqeS9oOWPmOW-l-W8uuWkp--8jOWTquaAleS7o-S7t-aYr-iuqeS9oOW9u-W6leWOjOW8g-aIkeOAgeaGjuaBqOaIke-8jOeUmuiHs-S6suaJi-adgOatu-aIkeOAglxu4oCc5oiR5Lya55So5oiR55qE5pa55byP5biu5L2g4oCdXG7igJzpmL_llpzvvIzkuI3opoHmhKTmgJLvvIzopoHmgJ3ogIPigJ1cbuKAnOaIkee7iOacieS4gOaXpeS8muiiq-S9oOS8pOmAj-S6huW_g-KAnVxu5L2g55yL77yM5oiR6K-05a-55LqG77yM6IuP5peg5oGZ56Gu5a6e6KKr5L2g4oCc5Lyk6YCP5LqG5b-D4oCd44CCXG7kvaDor7Tov4dcbuKAnOiLj-aXoOaBme-8jOaIkeS4jeimgeaIkOS4uuS9oOWgleiQveeahOeQhueUse-8geKAnVxu4oCc5Lmf5Yir6K6p5oiR5oiQ5Li65L2g5aCV6JC955qE55CG55Sx77yB4oCdXG7lj6_mmK_pmL_llpzvvIzlr7nkuI3otbfjgILku47kuIDlvIDlp4vvvIzkvaDmiJHnmoTnu5PlsYDlsLHml6nlt7Lms6jlrprjgILmiJHmiYDlgZrnmoTkuIDliIfvvIzlj6rmmK_lvJXlr7zkvaDmiJDplb_vvIzlvJXlr7zkvaDljrvniLHjgIHljrvmgajjgIHljrvmi6XmnInoh6rlt7HnmoTmhJ_mg4XjgILmiJHopoHkvaDlrabkvJrmi6_mlZHoh6rlt7HvvIzogIzkuI3mmK_kuIDlkbPmi6_mlZHku5bkurrjgIJcbumYv-WWnO-8jOaIkeeIseS9oOWQl-OAguWmguaenOS4jeeIse-8jOS4uuS7gOS5iOeci-WIsOS9oOS8muiuqeaIkeWYtOinkuS4iuaJrO-8jOWmguaenOS4jeeIse-8jOS4uuS7gOS5iOS8muaKiuS9oOeahOmdkuS4neaNp-WcqOaJi-W_g--8jOWmguaenOS4jeeIse-8jOS4uuS7gOS5iOeUmOaEv-WAkuWcqOS9oOeahOaAgOmHjOOAglxu6YKj5LmI6Zi_5Zac77yM5L2g54ix5oiR5ZCX77yf5oGo5oiR5ZCX77yf5peg6K665oCO5qC35oiR6YO95o6l5Y-X77yM5LiN6L-H5L2g6KaB6K6w5L2P77yM5oGo77yM5q-U54ix5pu06ZW_5LmF44CC54ix77yM5rC46L-c5q-U5oGo77yM5pu06auY6LS144CCXG5cbuaUtuiXj-WutiIsInUiOiJodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvZ2gvemhhb2hlMzMvanViZW5zaGEtYWZ0ZXJzYWxlQG1hc3Rlci9pbWFnZXMvQ2hhdEdQVC1JbWFnZS1KdW4tMjItLTIwLTE3ODIxMTI3NzUxMjEuanBnIn0">
-          <div class="entry-visual">
-            <img src="青白阿喜/images/ChatGPT-Image-Jun-22--20-1782112485554.jpg" alt="青白 · 致阿喜" />
-          </div>
+        </div>
+      </section>
+      <section class="script-block reveal">
+        <div class="script-head">
+          <p class="section-kicker">SCRIPT</p>
+          <h2 class="section-title">青白</h2>
+          <p class="section-desc">1 封售后</p>
+        </div>
+        <div class="entries">
+          
+        <a class="entry reveal" href="https://zhaohe33.github.io/jubensha-aftersale/?s=eyJ5IjoiaHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g_dj1odnB2VFdKTUtCZyIsInQiOiLoh7TpmL_llpwiLCJjIjoi6IOG5bCP6ay877yM5qyi6L-O5Zue5Yiw546w5a6e5LiW55WM44CCXG5cbuS9oOabvue7j-mXrui_h-aIke-8jOiLj-aXoOaBmeeIsei_h-mYv-WWnOWQl--8n-aIkeWRiuivieS9oO-8jOaIkeWvueS9oOeahOaDheaEn-abtOWDj-aYr-WvueWmueWmue-8jOiAjOmdnueIseS6uuOAguS9oOaYr-aXoOWQr-awkeeahOWkp-elreWPuO-8jOawuOi_nOaYr-acgOe-juOAgeacgOe6r-eyueeahOmCo-S4quWWhOS6uuOAguaIkeayoeazleWvueS9oOeUn-WHuuaBi-S6uueahOeIseaEj--8jOWboOS4uumCo-aXtueahOS9oO-8jOagueacrOS4jeaHgueIseOAglxu5Zua5b6S5ZGK6K-J5oiR6K-05LuW54ix5L2g77yM5oOz55So6Ieq5bex55qE55Sf5ZG95p2l5ouv5pWR5L2g44CC5oiR5Ziy56yR5LuW6K-077yM5LiA5Liq5LiN5oeC54ix55qE5Lq677yM5oCO5LmI5Y675ouv5pWR5aW544CC5LuW6K-06YKj5bCx5Lqk57uZ5L2g5LqG5oiR55qE5pyL5Y-L77yM5aW55LiN5oeC54ix77yM5bCx55Sx5L2g5p2l5pWZ5aW55LuA5LmI5piv54ix44CC5oiR6Lqr5Li65pS26JeP5a6277yM5Y-q6KeJ5b6X6L-Z5piv5LiA5Lu25Y2B5YiG5pyJ6Laj44CB5p6B5YW35oyR5oiY55qE5ri45oiP44CC5LqO5piv5L2c5Li66ZqQ6JePQk9TU--8jOaIkeW6lOS4i-S6huWbmuW-kueahOivt-axgu-8jOaOpeS4i-S6huWSjOmYv-mHkeeahOi_meWcuuS6pOaYk-OAglxu5oiR6K-06L-H77yM5oiR6L-Z5Liq5Lq677yM5pyA5L-h5a6I5om_6K-644CC5Zug5q2k77yM5oiR5b-F6aG75Lqy5omL5pWZ5Lya5L2g5Lik5qC35Lic6KW_77yM5LiN5q2i5pyJ54ix77yM6L-Y5pyJ5oGo44CC5Y-q5pyJ6K6p5L2g5oul5pyJ54ix5oGo5oOF5LuH77yM5piO55m95L2V5Li656eB5b-D77yM5oiR5omN6IO95bCG5L2g5LuO6L-R5LmO56We5piO55y35peP55qE5peg5ZCv5rCR77yM5Y-Y5oiQ5LiA5Liq5pmu5pmu6YCa6YCa44CB6IO95aSf6KKr5ouv5pWR55qE5Lq644CCXG7lpoLkvZXmlZnkvJrkvaDniLHlkaLvvJ_lhbblrp7moLnmnKzkuI3nlKjmiJHmlZnvvIzmiJHku6znmoTpmL_llpzlp5HlqJjlkJHmnaXniLHnnYDov5nkuJbpl7TkuIfnianjgILmiJHpnIDopoHmlZnkvaDnmoTvvIzmmK_oh6rnp4HjgILpgqPmgajvvIzlj4jor6XmgI7moLfmlZnvvJ9cbuiDjOWPm--8jOe-nui-seOAglxu6L-Z5piv5oiR6IO95oOz5Yiw6KeB5pWI5pyA5b-r55qE5pa55byP44CC5Zyo5L2g5a-55oiR5YWo54S25L6d6LWW44CB5ruh5b-D5L-h5Lu755qE5pe25YCZ77yM57uZ5L2g5pyA5rex44CB5pyA55eb55qE5LiA5Zy65Y-b5Y-Y44CCXG7lj6_miJHnnJ_nmoTmr6vkuI3lnKjmhI_lkJfvvJ_kuI3nn6Xku47kvZXml7botbfvvIzmiJHmhaLmhaLlvIDlp4vlnKjkuY7kvaDjgILmiJborrjmmK_liJ3op4HkvaDnmoTnrKzkuIDnnLzvvIzmiJborrjmmK_mrKHmrKHmiqTkvaDlkajlhajnmoTnnqzpl7TvvIzlj4jmiJborrjmmK_kvaDotaDkuojmiJHpnZLkuJ3nmoTpgqPkuIDliLvjgILmiJHkvJrlnKjmhI_kvaDlvIDkuI3lvIDlv4PjgIHpmr7kuI3pmr7ov4fjgIJcbuaIkeWIhuS4jea4hei_meWIsOW6leaYr-S4jeaYr-eIse-8jOaIkeWPquefpemBk-aIkeaXoOavlOWcqOS5juS9oOOAguS9huavlOi1t-i_meS7veW_g-aEj--8jOaIkeabtOWcqOS5juaIkeeahOebrueahOKAlOKAlOaIkeimgeiuqeS9oOWtpuS8muaBqO-8jOiuqeS9oOWPmOW-l-W8uuWkp--8jOWTquaAleS7o-S7t-aYr-iuqeS9oOW9u-W6leWOjOW8g-aIkeOAgeaGjuaBqOaIke-8jOeUmuiHs-S6suaJi-adgOatu-aIkeOAglxu4oCc5oiR5Lya55So5oiR55qE5pa55byP5biu5L2g4oCdXG7igJzpmL_llpzvvIzkuI3opoHmhKTmgJLvvIzopoHmgJ3ogIPigJ1cbuKAnOaIkee7iOacieS4gOaXpeS8muiiq-S9oOS8pOmAj-S6huW_g-KAnVxu5L2g55yL77yM5oiR6K-05a-55LqG77yM6IuP5peg5oGZ56Gu5a6e6KKr5L2g4oCc5Lyk6YCP5LqG5b-D4oCd44CCXG7kvaDor7Tov4dcbuKAnOiLj-aXoOaBme-8jOaIkeS4jeimgeaIkOS4uuS9oOWgleiQveeahOeQhueUse-8geKAnVxu4oCc5Lmf5Yir6K6p5oiR5oiQ5Li65L2g5aCV6JC955qE55CG55Sx77yB4oCdXG7lj6_mmK_pmL_llpzvvIzlr7nkuI3otbfjgILku47kuIDlvIDlp4vvvIzkvaDmiJHnmoTnu5PlsYDlsLHml6nlt7Lms6jlrprjgILmiJHmiYDlgZrnmoTkuIDliIfvvIzlj6rmmK_lvJXlr7zkvaDmiJDplb_vvIzlvJXlr7zkvaDljrvniLHjgIHljrvmgajjgIHljrvmi6XmnInoh6rlt7HnmoTmhJ_mg4XjgILmiJHopoHkvaDlrabkvJrmi6_mlZHoh6rlt7HvvIzogIzkuI3mmK_kuIDlkbPmi6_mlZHku5bkurrjgIJcbumYv-WWnO-8jOaIkeeIseS9oOWQl-OAguWmguaenOS4jeeIse-8jOS4uuS7gOS5iOeci-WIsOS9oOS8muiuqeaIkeWYtOinkuS4iuaJrO-8jOWmguaenOS4jeeIse-8jOS4uuS7gOS5iOS8muaKiuS9oOeahOmdkuS4neaNp-WcqOaJi-W_g--8jOWmguaenOS4jeeIse-8jOS4uuS7gOS5iOeUmOaEv-WAkuWcqOS9oOeahOaAgOmHjOOAglxu6YKj5LmI6Zi_5Zac77yM5L2g54ix5oiR5ZCX77yf5oGo5oiR5ZCX77yf5peg6K665oCO5qC35oiR6YO95o6l5Y-X77yM5LiN6L-H5L2g6KaB6K6w5L2P77yM5oGo77yM5q-U54ix5pu06ZW_5LmF44CC54ix77yM5rC46L-c5q-U5oGo77yM5pu06auY6LS144CCXG5cbuaUtuiXj-WutiIsInUiOiJodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvZ2gvemhhb2hlMzMvanViZW5zaGEtYWZ0ZXJzYWxlQG1hc3Rlci9pbWFnZXMvQ2hhdEdQVC1JbWFnZS1KdW4tMjItLTIwLTE3ODIxMTI3NzUxMjEuanBnIn0" target="_blank" rel="noopener">
+          <div class="entry-visual"><img src="青白/苏无恙/阿喜/images/ChatGPT-Image-Jun-22--20-1782112485554.jpg" alt="" /></div>
           <div class="entry-body">
-            <p class="entry-script">剧本 · 青白</p>
+            <p class="entry-script">我方 · 苏无恙</p>
             <h3 class="entry-name">致阿喜</h3>
-            <p class="entry-blurb">阿喜小姐，欢迎回到现实世界。</p>
+            <p class="entry-blurb">售后</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">青白</div>
         </a>
-      </div>
+        </div>
+      </section>
     </main>
 
-    <footer>剧本杀售后合集</footer>
+    <footer>剧本杀售后合集 · 共 13 封</footer>
   </div>
-
   <script>
     const reveals = document.querySelectorAll(".reveal");
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-in");
-            io.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.18, rootMargin: "0px 0px -8% 0px" }
-    );
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-in");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
     reveals.forEach((el, i) => {
-      el.style.transitionDelay = `${Math.min(i * 0.12, 0.36)}s`;
+      el.style.transitionDelay = `${Math.min(i * 0.06, 0.3)}s`;
       io.observe(el);
     });
   </script>

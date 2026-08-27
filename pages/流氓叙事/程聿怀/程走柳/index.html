@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>致程走柳 · 流氓叙事</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+:root {
+  --ink: #100e0c;
+  --paper: #efe6d6;
+  --paper-soft: #cfc3ae;
+  --fade: rgba(239, 230, 214, 0.55);
+  --seal: #9c2f2a;
+  --line: rgba(239, 230, 214, 0.16);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Noto Serif SC", "Songti SC", serif;
+  color: var(--paper);
+  background: var(--ink);
+  line-height: 1.95;
+  min-height: 100vh;
+}
+body::before {
+  content: "";
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 55% at 12% 8%, rgba(120, 48, 40, 0.18), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 88% 18%, rgba(70, 58, 40, 0.16), transparent 50%),
+    linear-gradient(180deg, #0c0a09 0%, #14110e 50%, #0f0d0b 100%);
+}
+.wrap { position: relative; z-index: 2; max-width: 720px; margin: 0 auto; padding: 2.5rem 1.35rem 4rem; }
+.back {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  color: var(--fade); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.22em;
+  margin-bottom: 2.2rem; transition: color .25s;
+}
+.back:hover { color: var(--paper); }
+.meta { font-size: 0.78rem; letter-spacing: 0.28em; color: rgba(156,47,42,.85); margin-bottom: 0.85rem; }
+h1 {
+  font-family: "Ma Shan Zheng", cursive;
+  font-size: clamp(2.4rem, 8vw, 3.4rem);
+  letter-spacing: 0.16em; line-height: 1.15; margin-bottom: 0.4rem;
+}
+.sub { color: var(--paper-soft); letter-spacing: 0.12em; font-size: 0.95rem; margin-bottom: 2rem; }
+.line { width: 2.2rem; height: 1px; background: var(--seal); margin: 0 0 2rem; }
+.prose p { margin-bottom: 1.15rem; letter-spacing: 0.04em; }
+.prose p:last-child { margin-bottom: 0; }
+.media { margin: 1.6rem 0 0; }
+.media video, .media img {
+  width: 100%; display: block; border: 1px solid var(--line);
+  background: #000;
+}
+.media a.pdf {
+  display: inline-flex; margin-top: 1rem; padding: 0.7rem 1.1rem;
+  border: 1px solid rgba(239,230,214,.35); color: var(--paper);
+  text-decoration: none; letter-spacing: 0.2em; font-size: 0.88rem;
+}
+.media a.pdf:hover { border-color: rgba(239,230,214,.7); }
+.empty { color: var(--fade); letter-spacing: 0.08em; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="../../../../../index.html">← 返回合集</a>
+    <p class="meta">剧本 · 流氓叙事　/　我方 · 程聿怀</p>
+    <h1>致程走柳</h1>
+    <p class="sub">程聿怀 → 程走柳</p>
+    <div class="line" aria-hidden="true"></div>
+    <article class="prose">
+        <p>程走柳，我的同怀：</p>
+        <p>这或许是哥哥写给你的最后一封信了。想必你已然察觉，我准备前往警局自首，为这数年来犯下的过错画上句号。</p>
+        <p>坦白说，能在布雷诺与你重逢，并肩同行，是我莫大的欢喜。儿时总爱看《西游记》，羡慕孙悟空与哪吒并肩闯天地，如今我们也像他们一般，联手搅动布雷诺的风雨，终将莱诺家族彻底扳倒。</p>
+        <p>尘埃落定，可这场纷争，终究让布雷族与诺族的百姓蒙受了伤害，这份罪责总该有人承担。莱诺家族已得到应有的惩处，而我，也必须直面自己的过错。我从无意挑起纷争，可种种行径，确确实实给这片土地留下了难以弥补的创伤。</p>
+        <p>想起小黛的至亲，想起撒该，一条条逝去的生命，我都难辞其咎。自首，是我唯一的选择。</p>
+        <p>我知道你定会不舍。往日里，我总替你剥好清甜的荔枝，为你烹制可口的饭菜，时时叮嘱粗心大意的你留意生活琐事。但我也清楚，历经风雨，你早已褪去稚气，长成了能独当一面的姑娘。</p>
+        <p>往后别总将就着吃水煮蛋了。我留下了一本菜谱，里面是我多年钻研的手艺，照着步骤慢慢做，你便能尝到熟悉的味道。</p>
+        <p>千言万语，终有尽时。惟愿你岁岁平安，万事顺遂。</p>
+        <p>永远爱你的哥哥<br />
+程聿怀</p>
+    </article>
+      <div class="media">
+        <a class="pdf" href="../../../../../流氓叙事/程聿怀/程走柳/经典程家菜.pdf" target="_blank" rel="noopener">打开附件 PDF</a>
+      </div>
+  </div>
+</body>
+</html>

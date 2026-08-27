@@ -1,3 +1,2 @@
-﻿# keep nested repo metadata out of hub deploy
-**/.git.bak-hub/
+﻿**/.git.bak-hub/
 **/.git.bak-hub/**
