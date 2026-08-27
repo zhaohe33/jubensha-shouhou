@@ -63,6 +63,7 @@ h1 {
 .empty { color: var(--fade); letter-spacing: 0.08em; }
 
 .media audio { width: 100%; margin-top: 1rem; }
+.inline-video { margin: 1.6rem 0 1.8rem; }
   </style>
 </head>
 <body>
@@ -115,7 +116,13 @@ h1 {
         <p>这一次，她没有再犹豫。</p>
         <p>程走柳伸出手，小心地拿起信封，指尖轻轻划过封口，缓慢而克制地将它打开。</p>
         <p>信纸被展开的那一刻，仿佛时间也随之停滞。</p>
-        <p>——（视频）</p>
+        <div class="media inline-video">
+        <video controls playsinline preload="metadata">
+          <source src="https://zhaohe33.github.io/jubensha-shouhou/media/liumang-chengzouliu.mp4" type="video/mp4" />
+          <source src="../../../../media/liumang-chengzouliu.mp4" type="video/mp4" />
+        </video>
+        <a class="pdf" href="https://zhaohe33.github.io/jubensha-shouhou/media/liumang-chengzouliu.mp4" target="_blank" rel="noopener">若无法播放，点此打开/下载视频</a>
+        </div>
         <p>程走柳的视线停在最后一行字上。</p>
         <p>她没有说话，也没有哭出声。</p>
         <p>只是轻轻把信重新放回桌上。</p>
@@ -135,13 +142,7 @@ h1 {
         <p>就像那些没有消失的记忆。</p>
         <p>安静，却一直存在。</p>
     </article>
-      <div class="media">
-        <video controls playsinline preload="metadata">
-          <source src="https://zhaohe33.github.io/jubensha-shouhou/media/liumang-chengzouliu.mp4" type="video/mp4" />
-          <source src="../../../../media/liumang-chengzouliu.mp4" type="video/mp4" />
-        </video>
-        <a class="pdf" href="https://zhaohe33.github.io/jubensha-shouhou/media/liumang-chengzouliu.mp4" target="_blank" rel="noopener">若无法播放，点此打开/下载视频</a>
-      </div>
+
   </div>
 </body>
 </html>

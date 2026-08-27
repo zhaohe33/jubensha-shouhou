@@ -156,6 +156,45 @@ def text_to_paragraphs(text: str) -> list[str]:
     return out
 
 
+def plain_paragraphs(text: str) -> list[str]:
+    text = text.replace("\r\n", "\n").replace("\r", "\n").strip()
+    if not text:
+        return []
+    parts = re.split(r"\n\s*\n", text)
+    out = []
+    for part in parts:
+        lines = [ln.strip() for ln in part.split("\n") if ln.strip()]
+        if lines:
+            out.append("\n".join(lines))
+    return out
+
+
+VIDEO_PLACEHOLDER_RE = re.compile(r"^——?\s*[（(]\s*视频\s*[）)]\s*$")
+
+
+def video_embed_html(v: str, prefix: str) -> str:
+    alias = VIDEO_ALIASES.get(v.replace("\\", "/"))
+    if alias and (ROOT / alias).exists():
+        abs_src = pages_url(alias)
+        rel_src = prefix + alias
+        return (
+            "        <div class=\"media inline-video\">\n"
+            "        <video controls playsinline preload=\"metadata\">\n"
+            f'          <source src="{html.escape(abs_src)}" type="video/mp4" />\n'
+            f'          <source src="{html.escape(rel_src)}" type="video/mp4" />\n'
+            "        </video>\n"
+            f'        <a class="pdf" href="{html.escape(abs_src)}" target="_blank" rel="noopener">若无法播放，点此打开/下载视频</a>\n'
+            "        </div>"
+        )
+    src = pages_url(v)
+    return (
+        "        <div class=\"media inline-video\">\n"
+        f'        <video controls playsinline preload="metadata" src="{html.escape(src)}"></video>\n'
+        f'        <a class="pdf" href="{html.escape(src)}" target="_blank" rel="noopener">若无法播放，点此打开/下载视频</a>\n'
+        "        </div>"
+    )
+
+
 def first_line_blurb(text: str, fallback: str) -> str:
     for line in text.replace("\r\n", "\n").split("\n"):
         s = line.strip().strip("：:，,")
@@ -342,8 +381,17 @@ def write_letter_page(entry: dict) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     prefix = depth_prefix(entry["view_rel"])
 
-    paras = text_to_paragraphs(entry["text"])
-    prose = "\n".join(f"        <p>{p}</p>" for p in paras) if paras else '        <p class="empty">（暂无文字）</p>'
+    videos = list(entry["videos"])
+    video_i = 0
+    prose_parts: list[str] = []
+    for para in plain_paragraphs(entry["text"]):
+        if VIDEO_PLACEHOLDER_RE.match(para.strip()) and video_i < len(videos):
+            prose_parts.append(video_embed_html(videos[video_i], prefix))
+            video_i += 1
+        else:
+            escaped = "<br />\n".join(html.escape(ln) for ln in para.split("\n"))
+            prose_parts.append(f"        <p>{escaped}</p>")
+    prose = "\n".join(prose_parts) if prose_parts else '        <p class="empty">（暂无文字）</p>'
 
     media_blocks = []
     # Prefer local gallery; else remote share image
@@ -351,24 +399,9 @@ def write_letter_page(entry: dict) -> None:
     if not shown_images and entry.get("remote_image"):
         shown_images = [entry["remote_image"]]
 
-    for v in entry["videos"]:
-        alias = VIDEO_ALIASES.get(v.replace("\\", "/"))
-        if alias and (ROOT / alias).exists():
-            abs_src = pages_url(alias)
-            rel_src = prefix + alias
-            media_blocks.append(
-                "        <video controls playsinline preload=\"metadata\">\n"
-                f'          <source src="{html.escape(abs_src)}" type="video/mp4" />\n'
-                f'          <source src="{html.escape(rel_src)}" type="video/mp4" />\n'
-                "        </video>\n"
-                f'        <a class="pdf" href="{html.escape(abs_src)}" target="_blank" rel="noopener">若无法播放，点此打开/下载视频</a>'
-            )
-        else:
-            src = pages_url(v)
-            media_blocks.append(
-                f'        <video controls playsinline preload="metadata" src="{html.escape(src)}"></video>\n'
-                f'        <a class="pdf" href="{html.escape(src)}" target="_blank" rel="noopener">若无法播放，点此打开/下载视频</a>'
-            )
+    # Only leftover videos (not placed inline) go to the bottom
+    for v in videos[video_i:]:
+        media_blocks.append(video_embed_html(v, prefix))
     for img in shown_images:
         if img.startswith("http"):
             src = img
@@ -411,6 +444,7 @@ def write_letter_page(entry: dict) -> None:
   <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>{LETTER_CSS}
 .media audio {{ width: 100%; margin-top: 1rem; }}
+.inline-video {{ margin: 1.6rem 0 1.8rem; }}
   </style>
 </head>
 <body>
