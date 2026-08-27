@@ -530,14 +530,16 @@ def render_hub(entries: list[dict]) -> str:
             else '<div class="entry-visual entry-visual--plain"><span>信</span></div>'
         )
         seal = html.escape(e["script"][:2])
+        blurb = e["blurb"]
+        if len(blurb) > 28:
+            blurb = blurb[:28] + "…"
         cards.append(f"""
         <a class="entry" href="{href}">
           {visual}
           <div class="entry-body">
-            <p class="entry-script">剧本 · {html.escape(e['script'])}　/　我方 · {html.escape(e['me'])}</p>
+            <p class="entry-script">{html.escape(e['script'])} · {html.escape(e['me'])}</p>
             <h3 class="entry-name">{html.escape(e['title'])}</h3>
-            <p class="entry-blurb">{html.escape(e['blurb'])}</p>
-            <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
+            <p class="entry-blurb">{html.escape(blurb)}</p>
           </div>
           <div class="entry-seal" aria-hidden="true">{seal}</div>
         </a>""")
@@ -567,7 +569,7 @@ def render_hub(entries: list[dict]) -> str:
       font-family: "Noto Serif SC", "Songti SC", serif;
       color: var(--paper);
       background: var(--ink);
-      line-height: 1.8;
+      line-height: 1.55;
       overflow-x: hidden;
     }}
     body::before {{
@@ -587,74 +589,102 @@ def render_hub(entries: list[dict]) -> str:
     .page {{ position: relative; z-index: 2; }}
     .top {{
       text-align: center;
-      padding: 2.4rem 1.4rem 1.6rem;
+      padding: 1.6rem 1rem 1rem;
     }}
     .top-brand {{
       font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(2.8rem, 10vw, 4.2rem);
-      letter-spacing: 0.22em; line-height: 1; margin-left: 0.22em;
+      font-size: clamp(2.2rem, 8vw, 3.2rem);
+      letter-spacing: 0.2em; line-height: 1; margin-left: 0.2em;
     }}
     .top-line {{
-      width: 2.2rem; height: 1px; margin: 1.1rem auto 1rem; background: var(--seal);
+      width: 1.8rem; height: 1px; margin: 0.75rem auto 0.65rem; background: var(--seal);
     }}
     .top-lead {{
-      font-size: 0.95rem; letter-spacing: 0.22em; color: var(--paper-soft);
+      font-size: 0.85rem; letter-spacing: 0.2em; color: var(--paper-soft);
     }}
     .top-count {{
-      margin-top: 0.55rem; font-size: 0.8rem; letter-spacing: 0.28em; color: var(--fade);
+      margin-top: 0.35rem; font-size: 0.72rem; letter-spacing: 0.24em; color: var(--fade);
     }}
-    .collection {{ max-width: 920px; margin: 0 auto; padding: 0.4rem 1.4rem 4.5rem; }}
-    .entries {{ display: flex; flex-direction: column; gap: 1rem; }}
+    .collection {{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0.2rem 1rem 3rem;
+    }}
+    .entries {{
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+    }}
     .entry {{
-      position: relative; display: grid;
-      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
-      min-height: 168px; text-decoration: none; color: inherit; overflow: hidden;
-      border: 1px solid var(--line); background: rgba(28, 24, 20, 0.55);
-      transition: border-color 0.35s ease, background 0.35s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: rgba(28, 24, 20, 0.55);
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
     }}
-    .entry:hover {{ border-color: rgba(239, 230, 214, 0.38); background: rgba(36, 30, 24, 0.72); }}
-    .entry-visual {{ position: relative; min-height: 150px; overflow: hidden; background: #1a1612; }}
+    .entry:hover {{
+      border-color: rgba(239, 230, 214, 0.4);
+      background: rgba(36, 30, 24, 0.78);
+      transform: translateY(-2px);
+    }}
+    .entry-visual {{
+      position: relative;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      background: #1a1612;
+    }}
     .entry-visual img {{
       width: 100%; height: 100%; object-fit: cover; display: block;
-      transform: scale(1.04); transition: transform 1.1s ease; filter: saturate(0.85) contrast(1.05);
+      transition: transform 0.8s ease; filter: saturate(0.88) contrast(1.04);
     }}
-    .entry:hover .entry-visual img {{ transform: scale(1.1); }}
+    .entry:hover .entry-visual img {{ transform: scale(1.06); }}
     .entry-visual--plain {{
       display: grid; place-items: center;
-      font-family: "Ma Shan Zheng", cursive; font-size: 2.2rem; color: rgba(239,230,214,.28);
-      letter-spacing: 0.2em;
+      font-family: "Ma Shan Zheng", cursive; font-size: 1.8rem; color: rgba(239,230,214,.28);
+      letter-spacing: 0.18em;
     }}
     .entry-body {{
-      display: flex; flex-direction: column; justify-content: center;
-      padding: 1.2rem 1.3rem 1.2rem 1.15rem; gap: 0.35rem;
+      display: flex; flex-direction: column; gap: 0.2rem;
+      padding: 0.7rem 0.75rem 0.85rem;
     }}
-    .entry-script {{ font-size: 0.72rem; letter-spacing: 0.18em; color: var(--seal); }}
+    .entry-script {{
+      font-size: 0.68rem; letter-spacing: 0.12em; color: var(--seal);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }}
     .entry-name {{
       font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(1.55rem, 4vw, 2.05rem);
-      letter-spacing: 0.14em; margin-left: 0.1em; line-height: 1.15;
+      font-size: clamp(1.25rem, 2.4vw, 1.55rem);
+      letter-spacing: 0.1em; margin-left: 0.06em; line-height: 1.2;
     }}
-    .entry-blurb {{ color: var(--paper-soft); font-size: 0.9rem; letter-spacing: 0.04em; }}
-    .entry-go {{
-      margin-top: 0.5rem; display: inline-flex; align-items: center; gap: 0.45rem;
-      font-size: 0.78rem; letter-spacing: 0.28em; color: var(--fade);
-      transition: color 0.3s ease, gap 0.3s ease;
+    .entry-blurb {{
+      color: var(--paper-soft); font-size: 0.78rem; letter-spacing: 0.02em;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
     }}
-    .entry:hover .entry-go {{ color: var(--paper); gap: 0.7rem; }}
     .entry-seal {{
-      position: absolute; top: 0.85rem; right: 0.85rem; width: 2.4rem; height: 2.4rem;
-      border: 1.5px solid var(--seal-soft); color: var(--seal);
+      position: absolute; top: 0.55rem; right: 0.55rem; width: 1.9rem; height: 1.9rem;
+      border: 1px solid var(--seal-soft); color: var(--seal);
       display: grid; place-items: center; font-family: "Ma Shan Zheng", cursive;
-      font-size: 0.9rem; transform: rotate(12deg); opacity: 0.7; pointer-events: none;
+      font-size: 0.78rem; transform: rotate(12deg); opacity: 0.75; pointer-events: none;
+      background: rgba(16,14,12,.35);
     }}
     footer {{
-      text-align: center; padding: 0 1.4rem 2.8rem;
-      color: rgba(239, 230, 214, 0.35); font-size: 0.78rem; letter-spacing: 0.22em;
+      text-align: center; padding: 0 1rem 2rem;
+      color: rgba(239, 230, 214, 0.35); font-size: 0.72rem; letter-spacing: 0.2em;
     }}
-    @media (max-width: 720px) {{
-      .entry {{ grid-template-columns: 1fr; min-height: 0; }}
-      .entry-visual {{ min-height: 140px; }}
-      .entry-body {{ padding: 1.05rem 1.1rem 1.2rem; }}
+    @media (max-width: 900px) {{
+      .entries {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }}
+    }}
+    @media (max-width: 520px) {{
+      .entries {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }}
+      .entry-body {{ padding: 0.55rem 0.55rem 0.7rem; }}
+      .entry-blurb {{ -webkit-line-clamp: 1; }}
+      .top {{ padding: 1.2rem 0.8rem 0.7rem; }}
+      .collection {{ padding: 0.1rem 0.7rem 2.2rem; }}
     }}
   </style>
 </head>
