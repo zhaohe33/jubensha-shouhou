@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>剧本杀售后</title>
+  <meta name="description" content="所有剧本杀售后，写在这里。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #100e0c;
+      --ink-lift: #1c1814;
+      --paper: #efe6d6;
+      --paper-soft: #cfc3ae;
+      --fade: rgba(239, 230, 214, 0.55);
+      --seal: #9c2f2a;
+      --seal-soft: rgba(156, 47, 42, 0.55);
+      --line: rgba(239, 230, 214, 0.16);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: "Noto Serif SC", "Songti SC", serif;
+      color: var(--paper);
+      background: var(--ink);
+      line-height: 1.8;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 55% at 12% 8%, rgba(120, 48, 40, 0.22), transparent 55%),
+        radial-gradient(ellipse 70% 50% at 88% 18%, rgba(70, 58, 40, 0.2), transparent 50%),
+        radial-gradient(ellipse 90% 55% at 50% 100%, rgba(40, 34, 28, 0.55), transparent 60%),
+        linear-gradient(180deg, #0c0a09 0%, #14110e 45%, #0f0d0b 100%);
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.055;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .page {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* —— Hero —— */
+    .hero {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 4rem 1.4rem 3rem;
+      position: relative;
+    }
+
+    .hero-inner {
+      max-width: 40rem;
+    }
+
+    .hero-brand {
+      font-family: "Ma Shan Zheng", cursive;
+      font-size: clamp(3.6rem, 14vw, 6.2rem);
+      letter-spacing: 0.22em;
+      line-height: 1;
+      margin-left: 0.22em;
+      opacity: 0;
+      animation: rise 1.3s ease 0.15s forwards;
+    }
+
+    .hero-line {
+      width: 2.4rem;
+      height: 1px;
+      margin: 1.7rem auto 1.5rem;
+      background: var(--seal);
+      opacity: 0;
+      animation: fadeIn 1s ease 0.65s forwards;
+    }
+
+    .hero-lead {
+      font-size: clamp(1rem, 2.8vw, 1.15rem);
+      letter-spacing: 0.28em;
+      color: var(--paper-soft);
+      opacity: 0;
+      animation: rise 1.2s ease 0.85s forwards;
+    }
+
+    .hero-cta {
+      margin-top: 2.4rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.85rem 1.45rem;
+      border: 1px solid rgba(239, 230, 214, 0.35);
+      background: rgba(239, 230, 214, 0.04);
+      color: var(--paper);
+      text-decoration: none;
+      font-size: 0.92rem;
+      letter-spacing: 0.32em;
+      transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
+      opacity: 0;
+      animation: rise 1.1s ease 1.2s forwards;
+    }
+
+    .hero-cta:hover {
+      border-color: rgba(239, 230, 214, 0.7);
+      background: rgba(239, 230, 214, 0.09);
+      transform: translateY(-2px);
+    }
+
+    .hero-cta span {
+      font-size: 1.05rem;
+      line-height: 1;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 1.8rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.78rem;
+      letter-spacing: 0.35em;
+      color: var(--fade);
+      opacity: 0;
+      animation: pulseHint 2.4s ease 2s infinite;
+    }
+
+    /* —— Collection —— */
+    .collection {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 1rem 1.4rem 5.5rem;
+    }
+
+    .section-head {
+      text-align: center;
+      margin-bottom: 2.8rem;
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+
+    .section-head.is-in {
+      opacity: 1;
+      transform: none;
+    }
+
+    .section-kicker {
+      font-size: 0.78rem;
+      letter-spacing: 0.42em;
+      color: var(--seal-soft);
+      margin-bottom: 0.7rem;
+    }
+
+    .section-title {
+      font-family: "Ma Shan Zheng", cursive;
+      font-size: clamp(2rem, 6vw, 2.8rem);
+      letter-spacing: 0.18em;
+      margin-left: 0.18em;
+    }
+
+    .section-desc {
+      margin-top: 0.85rem;
+      color: var(--fade);
+      letter-spacing: 0.12em;
+      font-size: 0.95rem;
+    }
+
+    .entries {
+      display: flex;
+      flex-direction: column;
+      gap: 1.35rem;
+    }
+
+    .entry {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.2fr);
+      min-height: 240px;
+      text-decoration: none;
+      color: inherit;
+      overflow: hidden;
+      isolation: isolate;
+      border: 1px solid var(--line);
+      background: rgba(28, 24, 20, 0.55);
+      opacity: 0;
+      transform: translateY(28px);
+      transition:
+        opacity 0.9s ease,
+        transform 0.9s ease,
+        border-color 0.35s ease,
+        background 0.35s ease;
+    }
+
+    .entry.is-in {
+      opacity: 1;
+      transform: none;
+    }
+
+    .entry:hover {
+      border-color: rgba(239, 230, 214, 0.38);
+      background: rgba(36, 30, 24, 0.72);
+    }
+
+    .entry-visual {
+      position: relative;
+      min-height: 220px;
+      overflow: hidden;
+    }
+
+    .entry-visual img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transform: scale(1.04);
+      transition: transform 1.1s ease;
+      filter: saturate(0.85) contrast(1.05);
+    }
+
+    .entry:hover .entry-visual img {
+      transform: scale(1.1);
+    }
+
+    .entry-visual::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 40%, rgba(16, 14, 12, 0.35) 100%);
+      pointer-events: none;
+    }
+
+    .entry-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 1.8rem 1.7rem 1.8rem 1.5rem;
+      gap: 0.55rem;
+    }
+
+    .entry-script {
+      font-size: 0.78rem;
+      letter-spacing: 0.36em;
+      color: var(--seal);
+    }
+
+    .entry-name {
+      font-family: "Ma Shan Zheng", cursive;
+      font-size: clamp(2rem, 5vw, 2.55rem);
+      letter-spacing: 0.16em;
+      margin-left: 0.12em;
+      line-height: 1.15;
+    }
+
+    .entry-blurb {
+      color: var(--paper-soft);
+      font-size: 0.95rem;
+      letter-spacing: 0.06em;
+      max-width: 26rem;
+    }
+
+    .entry-go {
+      margin-top: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.82rem;
+      letter-spacing: 0.28em;
+      color: var(--fade);
+      transition: color 0.3s ease, gap 0.3s ease;
+    }
+
+    .entry:hover .entry-go {
+      color: var(--paper);
+      gap: 0.7rem;
+    }
+
+    .entry-seal {
+      position: absolute;
+      top: 1.1rem;
+      right: 1.1rem;
+      width: 3.1rem;
+      height: 3.1rem;
+      border: 1.5px solid var(--seal-soft);
+      color: var(--seal);
+      display: grid;
+      place-items: center;
+      font-family: "Ma Shan Zheng", cursive;
+      font-size: 1.15rem;
+      letter-spacing: 0.08em;
+      transform: rotate(12deg);
+      opacity: 0.75;
+      pointer-events: none;
+    }
+
+    footer {
+      text-align: center;
+      padding: 0 1.4rem 3.2rem;
+      color: rgba(239, 230, 214, 0.35);
+      font-size: 0.78rem;
+      letter-spacing: 0.22em;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(22px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes pulseHint {
+      0%, 100% { opacity: 0.22; transform: translateX(-50%) translateY(0); }
+      50% { opacity: 0.55; transform: translateX(-50%) translateY(5px); }
+    }
+
+    @media (max-width: 720px) {
+      .entry {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+
+      .entry-visual {
+        min-height: 190px;
+      }
+
+      .entry-visual::after {
+        background: linear-gradient(180deg, transparent 35%, rgba(16, 14, 12, 0.55) 100%);
+      }
+
+      .entry-body {
+        padding: 1.35rem 1.25rem 1.55rem;
+      }
+
+      .entry-seal {
+        top: 0.9rem;
+        right: 0.9rem;
+        width: 2.6rem;
+        height: 2.6rem;
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="hero-inner">
+        <h1 class="hero-brand">售后</h1>
+        <div class="hero-line" aria-hidden="true"></div>
+        <p class="hero-lead">局终之后，信仍未完</p>
+        <a class="hero-cta" href="#collection">
+          进入合集
+          <span aria-hidden="true">↓</span>
+        </a>
+      </div>
+      <p class="scroll-hint">下滑浏览</p>
+    </header>
+
+    <main class="collection" id="collection">
+      <div class="section-head reveal">
+        <p class="section-kicker">AFTER SALE</p>
+        <h2 class="section-title">现有售后</h2>
+        <p class="section-desc">点开一封信，走进一场局的余韵</p>
+      </div>
+
+      <div class="entries">
+        <a class="entry reveal" href="贪欢武宁/index.html">
+          <div class="entry-visual">
+            <img src="贪欢武宁/images/spring.jpg" alt="贪欢 · 春分戏蝶" />
+          </div>
+          <div class="entry-body">
+            <p class="entry-script">剧本 · 贪欢</p>
+            <h3 class="entry-name">致武宁</h3>
+            <p class="entry-blurb">往后的山河岁月，我都想与你一起走过。</p>
+            <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">贪欢</div>
+        </a>
+
+        <a class="entry reveal" href="青白阿喜/index.html">
+          <div class="entry-visual">
+            <img src="青白阿喜/images/ChatGPT-Image-Jun-22--20-1782112485554.jpg" alt="青白 · 致阿喜" />
+          </div>
+          <div class="entry-body">
+            <p class="entry-script">剧本 · 青白</p>
+            <h3 class="entry-name">致阿喜</h3>
+            <p class="entry-blurb">沉浸展示页，可编辑文案、背景与音乐后分享。</p>
+            <p class="entry-go">进入展示 <span aria-hidden="true">→</span></p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">青白</div>
+        </a>
+      </div>
+    </main>
+
+    <footer>剧本杀售后合集</footer>
+  </div>
+
+  <script>
+    const reveals = document.querySelectorAll(".reveal");
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-in");
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.18, rootMargin: "0px 0px -8% 0px" }
+    );
+    reveals.forEach((el, i) => {
+      el.style.transitionDelay = `${Math.min(i * 0.12, 0.36)}s`;
+      io.observe(el);
+    });
+  </script>
+</body>
+</html>
