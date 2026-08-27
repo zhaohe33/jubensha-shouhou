@@ -19,7 +19,6 @@
       --line: rgba(239, 230, 214, 0.16);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
     body {
       font-family: "Noto Serif SC", "Songti SC", serif;
       color: var(--paper);
@@ -42,70 +41,35 @@
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }
     .page { position: relative; z-index: 2; }
-    .hero {
-      min-height: 100vh; min-height: 100dvh;
-      display: grid; place-items: center; text-align: center;
-      padding: 4rem 1.4rem 3rem; position: relative;
+    .top {
+      text-align: center;
+      padding: 2.4rem 1.4rem 1.6rem;
     }
-    .hero-brand {
+    .top-brand {
       font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(3.6rem, 14vw, 6.2rem);
+      font-size: clamp(2.8rem, 10vw, 4.2rem);
       letter-spacing: 0.22em; line-height: 1; margin-left: 0.22em;
-      opacity: 0; animation: rise 1.3s ease 0.15s forwards;
     }
-    .hero-line {
-      width: 2.4rem; height: 1px; margin: 1.7rem auto 1.5rem; background: var(--seal);
-      opacity: 0; animation: fadeIn 1s ease 0.65s forwards;
+    .top-line {
+      width: 2.2rem; height: 1px; margin: 1.1rem auto 1rem; background: var(--seal);
     }
-    .hero-lead {
-      font-size: clamp(1rem, 2.8vw, 1.15rem);
-      letter-spacing: 0.28em; color: var(--paper-soft);
-      opacity: 0; animation: rise 1.2s ease 0.85s forwards;
+    .top-lead {
+      font-size: 0.95rem; letter-spacing: 0.22em; color: var(--paper-soft);
     }
-    .hero-cta {
-      margin-top: 2.4rem; display: inline-flex; align-items: center; gap: 0.7rem;
-      padding: 0.85rem 1.45rem; border: 1px solid rgba(239, 230, 214, 0.35);
-      background: rgba(239, 230, 214, 0.04); color: var(--paper);
-      text-decoration: none; font-size: 0.92rem; letter-spacing: 0.32em;
-      transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
-      opacity: 0; animation: rise 1.1s ease 1.2s forwards;
+    .top-count {
+      margin-top: 0.55rem; font-size: 0.8rem; letter-spacing: 0.28em; color: var(--fade);
     }
-    .hero-cta:hover {
-      border-color: rgba(239, 230, 214, 0.7);
-      background: rgba(239, 230, 214, 0.09);
-      transform: translateY(-2px);
-    }
-    .scroll-hint {
-      position: absolute; bottom: 1.8rem; left: 50%; transform: translateX(-50%);
-      font-size: 0.78rem; letter-spacing: 0.35em; color: var(--fade);
-      opacity: 0; animation: pulseHint 2.4s ease 2s infinite;
-    }
-    .collection { max-width: 920px; margin: 0 auto; padding: 1rem 1.4rem 5.5rem; }
-    .script-block { margin-bottom: 3.4rem; }
-    .script-head { text-align: center; margin-bottom: 1.6rem; }
-    .section-kicker {
-      font-size: 0.78rem; letter-spacing: 0.42em; color: var(--seal-soft); margin-bottom: 0.55rem;
-    }
-    .section-title {
-      font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(1.9rem, 5.5vw, 2.6rem);
-      letter-spacing: 0.18em; margin-left: 0.18em;
-    }
-    .section-desc { margin-top: 0.55rem; color: var(--fade); letter-spacing: 0.12em; font-size: 0.9rem; }
-    .entries { display: flex; flex-direction: column; gap: 1.1rem; }
+    .collection { max-width: 920px; margin: 0 auto; padding: 0.4rem 1.4rem 4.5rem; }
+    .entries { display: flex; flex-direction: column; gap: 1rem; }
     .entry {
       position: relative; display: grid;
       grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
-      min-height: 188px; text-decoration: none; color: inherit; overflow: hidden;
+      min-height: 168px; text-decoration: none; color: inherit; overflow: hidden;
       border: 1px solid var(--line); background: rgba(28, 24, 20, 0.55);
-      opacity: 0; transform: translateY(22px);
-      transition: opacity 0.9s ease, transform 0.9s ease, border-color 0.35s ease, background 0.35s ease;
+      transition: border-color 0.35s ease, background 0.35s ease;
     }
-    .entry.is-in, .script-block.is-in .entry { opacity: 1; transform: none; }
-    .script-block.reveal { opacity: 0; transform: translateY(18px); transition: opacity .9s ease, transform .9s ease; }
-    .script-block.is-in { opacity: 1; transform: none; }
     .entry:hover { border-color: rgba(239, 230, 214, 0.38); background: rgba(36, 30, 24, 0.72); }
-    .entry-visual { position: relative; min-height: 170px; overflow: hidden; background: #1a1612; }
+    .entry-visual { position: relative; min-height: 150px; overflow: hidden; background: #1a1612; }
     .entry-visual img {
       width: 100%; height: 100%; object-fit: cover; display: block;
       transform: scale(1.04); transition: transform 1.1s ease; filter: saturate(0.85) contrast(1.05);
@@ -113,294 +77,189 @@
     .entry:hover .entry-visual img { transform: scale(1.1); }
     .entry-visual--plain {
       display: grid; place-items: center;
-      font-family: "Ma Shan Zheng", cursive; font-size: 2.4rem; color: rgba(239,230,214,.28);
+      font-family: "Ma Shan Zheng", cursive; font-size: 2.2rem; color: rgba(239,230,214,.28);
       letter-spacing: 0.2em;
     }
     .entry-body {
       display: flex; flex-direction: column; justify-content: center;
-      padding: 1.35rem 1.4rem 1.35rem 1.25rem; gap: 0.4rem;
+      padding: 1.2rem 1.3rem 1.2rem 1.15rem; gap: 0.35rem;
     }
-    .entry-script { font-size: 0.74rem; letter-spacing: 0.28em; color: var(--seal); }
+    .entry-script { font-size: 0.72rem; letter-spacing: 0.18em; color: var(--seal); }
     .entry-name {
       font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(1.7rem, 4.2vw, 2.2rem);
+      font-size: clamp(1.55rem, 4vw, 2.05rem);
       letter-spacing: 0.14em; margin-left: 0.1em; line-height: 1.15;
     }
-    .entry-blurb { color: var(--paper-soft); font-size: 0.92rem; letter-spacing: 0.05em; }
+    .entry-blurb { color: var(--paper-soft); font-size: 0.9rem; letter-spacing: 0.04em; }
     .entry-go {
-      margin-top: 0.65rem; display: inline-flex; align-items: center; gap: 0.45rem;
-      font-size: 0.8rem; letter-spacing: 0.28em; color: var(--fade);
+      margin-top: 0.5rem; display: inline-flex; align-items: center; gap: 0.45rem;
+      font-size: 0.78rem; letter-spacing: 0.28em; color: var(--fade);
       transition: color 0.3s ease, gap 0.3s ease;
     }
     .entry:hover .entry-go { color: var(--paper); gap: 0.7rem; }
     .entry-seal {
-      position: absolute; top: 0.9rem; right: 0.9rem; width: 2.6rem; height: 2.6rem;
+      position: absolute; top: 0.85rem; right: 0.85rem; width: 2.4rem; height: 2.4rem;
       border: 1.5px solid var(--seal-soft); color: var(--seal);
       display: grid; place-items: center; font-family: "Ma Shan Zheng", cursive;
-      font-size: 0.95rem; transform: rotate(12deg); opacity: 0.7; pointer-events: none;
+      font-size: 0.9rem; transform: rotate(12deg); opacity: 0.7; pointer-events: none;
     }
     footer {
-      text-align: center; padding: 0 1.4rem 3.2rem;
+      text-align: center; padding: 0 1.4rem 2.8rem;
       color: rgba(239, 230, 214, 0.35); font-size: 0.78rem; letter-spacing: 0.22em;
-    }
-    @keyframes rise {
-      from { opacity: 0; transform: translateY(22px); }
-      to { opacity: 1; transform: none; }
-    }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes pulseHint {
-      0%, 100% { opacity: 0.22; transform: translateX(-50%) translateY(0); }
-      50% { opacity: 0.55; transform: translateX(-50%) translateY(5px); }
     }
     @media (max-width: 720px) {
       .entry { grid-template-columns: 1fr; min-height: 0; }
-      .entry-visual { min-height: 150px; }
-      .entry-body { padding: 1.15rem 1.15rem 1.35rem; }
+      .entry-visual { min-height: 140px; }
+      .entry-body { padding: 1.05rem 1.1rem 1.2rem; }
     }
   </style>
 </head>
 <body>
   <div class="page">
-    <header class="hero">
-      <div class="hero-inner">
-        <h1 class="hero-brand">售后</h1>
-        <div class="hero-line" aria-hidden="true"></div>
-        <p class="hero-lead">局终之后，信仍未完</p>
-        <a class="hero-cta" href="#collection">进入合集 <span aria-hidden="true">↓</span></a>
-      </div>
-      <p class="scroll-hint">下滑浏览</p>
+    <header class="top">
+      <h1 class="top-brand">售后</h1>
+      <div class="top-line" aria-hidden="true"></div>
+      <p class="top-lead">局终之后，信仍未完</p>
+      <p class="top-count">全部售后 · 13 封</p>
     </header>
 
     <main class="collection" id="collection">
-      
-      <section class="script-block reveal">
-        <div class="script-head">
-          <p class="section-kicker">SCRIPT</p>
-          <h2 class="section-title">如故</h2>
-          <p class="section-desc">2 封售后</p>
-        </div>
-        <div class="entries">
-          
-        <a class="entry reveal" href="pages/如故/李文瑙/卫子谣/index.html">
+      <div class="entries">
+        
+        <a class="entry" href="pages/如故/李文瑙/卫子谣/index.html">
           <div class="entry-visual entry-visual--plain"><span>信</span></div>
           <div class="entry-body">
-            <p class="entry-script">我方 · 李文瑙</p>
+            <p class="entry-script">剧本 · 如故　/　我方 · 李文瑙</p>
             <h3 class="entry-name">致卫子谣</h3>
             <p class="entry-blurb">自那场生死棋局一别，便再无音讯，你近来可好？轮回将至，有些藏在心底的话，终究想告诉你…</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">如故</div>
         </a>
-        <a class="entry reveal" href="pages/如故/李文瑙/连世疆/index.html">
+        <a class="entry" href="pages/如故/李文瑙/连世疆/index.html">
           <div class="entry-visual entry-visual--plain"><span>信</span></div>
           <div class="entry-body">
-            <p class="entry-script">我方 · 李文瑙</p>
+            <p class="entry-script">剧本 · 如故　/　我方 · 李文瑙</p>
             <h3 class="entry-name">致连世疆</h3>
             <p class="entry-blurb">哥哥，算了——我还是更喜欢叫你弟弟。</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">如故</div>
         </a>
-        </div>
-      </section>
-      <section class="script-block reveal">
-        <div class="script-head">
-          <p class="section-kicker">SCRIPT</p>
-          <h2 class="section-title">暗夜降至</h2>
-          <p class="section-desc">1 封售后</p>
-        </div>
-        <div class="entries">
-          
-        <a class="entry reveal" href="pages/暗夜降至/车允智/金在秀/index.html">
+        <a class="entry" href="pages/暗夜降至/车允智/金在秀/index.html">
           <div class="entry-visual entry-visual--plain"><span>信</span></div>
           <div class="entry-body">
-            <p class="entry-script">我方 · 车允智</p>
+            <p class="entry-script">剧本 · 暗夜降至　/　我方 · 车允智</p>
             <h3 class="entry-name">致金在秀</h3>
             <p class="entry-blurb">视频售后</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">暗夜</div>
         </a>
-        </div>
-      </section>
-      <section class="script-block reveal">
-        <div class="script-head">
-          <p class="section-kicker">SCRIPT</p>
-          <h2 class="section-title">洗劫伦敦所有的玫瑰</h2>
-          <p class="section-desc">1 封售后</p>
-        </div>
-        <div class="entries">
-          
-        <a class="entry reveal" href="pages/洗劫伦敦所有的玫瑰/阿尔芒/斯黛拉/index.html">
+        <a class="entry" href="pages/洗劫伦敦所有的玫瑰/阿尔芒/斯黛拉/index.html">
           <div class="entry-visual entry-visual--plain"><span>信</span></div>
           <div class="entry-body">
-            <p class="entry-script">我方 · 阿尔芒</p>
+            <p class="entry-script">剧本 · 洗劫伦敦所有的玫瑰　/　我方 · 阿尔芒</p>
             <h3 class="entry-name">致斯黛拉</h3>
             <p class="entry-blurb">斯黛拉，见字如面。</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">洗劫</div>
         </a>
-        </div>
-      </section>
-      <section class="script-block reveal">
-        <div class="script-head">
-          <p class="section-kicker">SCRIPT</p>
-          <h2 class="section-title">洗劫罗马所有的情书</h2>
-          <p class="section-desc">1 封售后</p>
-        </div>
-        <div class="entries">
-          
-        <a class="entry reveal" href="pages/洗劫罗马所有的情书/维托/黛琳/index.html">
+        <a class="entry" href="pages/洗劫罗马所有的情书/维托/黛琳/index.html">
           <div class="entry-visual entry-visual--plain"><span>信</span></div>
           <div class="entry-body">
-            <p class="entry-script">我方 · 维托</p>
+            <p class="entry-script">剧本 · 洗劫罗马所有的情书　/　我方 · 维托</p>
             <h3 class="entry-name">致黛琳</h3>
             <p class="entry-blurb">亲爱的黛琳</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">洗劫</div>
         </a>
-        </div>
-      </section>
-      <section class="script-block reveal">
-        <div class="script-head">
-          <p class="section-kicker">SCRIPT</p>
-          <h2 class="section-title">流氓叙事</h2>
-          <p class="section-desc">4 封售后</p>
-        </div>
-        <div class="entries">
-          
-        <a class="entry reveal" href="pages/流氓叙事/程聿怀/黛利拉/index.html">
+        <a class="entry" href="pages/流氓叙事/程聿怀/黛利拉/index.html">
           <div class="entry-visual entry-visual--plain"><span>信</span></div>
           <div class="entry-body">
-            <p class="entry-script">我方 · 程聿怀</p>
+            <p class="entry-script">剧本 · 流氓叙事　/　我方 · 程聿怀</p>
             <h3 class="entry-name">致黛利拉</h3>
             <p class="entry-blurb">没想到吧，你竟会收到我的来信。</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">流氓</div>
         </a>
-        <a class="entry reveal" href="pages/流氓叙事/程聿怀/程走柳/index.html">
+        <a class="entry" href="pages/流氓叙事/程聿怀/程走柳/index.html">
           <div class="entry-visual entry-visual--plain"><span>信</span></div>
           <div class="entry-body">
-            <p class="entry-script">我方 · 程聿怀</p>
+            <p class="entry-script">剧本 · 流氓叙事　/　我方 · 程聿怀</p>
             <h3 class="entry-name">致程走柳</h3>
             <p class="entry-blurb">程走柳，我的同怀</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">流氓</div>
         </a>
-        <a class="entry reveal" href="pages/流氓叙事/蒋伯驾/程走柳/index.html">
+        <a class="entry" href="pages/流氓叙事/蒋伯驾/程走柳/index.html">
           <div class="entry-visual entry-visual--plain"><span>信</span></div>
           <div class="entry-body">
-            <p class="entry-script">我方 · 蒋伯驾</p>
+            <p class="entry-script">剧本 · 流氓叙事　/　我方 · 蒋伯驾</p>
             <h3 class="entry-name">致程走柳</h3>
             <p class="entry-blurb">在蒋伯驾去世后的几个月里，程走柳始终沉浸在悲伤之中，迟迟无法接受这个事实。</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">流氓</div>
         </a>
-        <a class="entry reveal" href="pages/流氓叙事/蒋伯驾/缪宏谟/index.html">
-          <div class="entry-visual"><img src="流氓叙事/蒋伯驾/缪宏谟/0c007671bb0e112e1da943bb431d99f5.jpg" alt="" /></div>
+        <a class="entry" href="pages/流氓叙事/蒋伯驾/缪宏谟/index.html">
+          <div class="entry-visual"><img src="https://zhaohe33.github.io/jubensha-shouhou/media/liumang-miaohongmo.jpg" alt="" loading="lazy" /></div>
           <div class="entry-body">
-            <p class="entry-script">我方 · 蒋伯驾</p>
+            <p class="entry-script">剧本 · 流氓叙事　/　我方 · 蒋伯驾</p>
             <h3 class="entry-name">致缪宏谟</h3>
             <p class="entry-blurb">蒋伯驾离世没过多久，缪宏谟便收到了一封匿名寄出的角膜捐献同意书。</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">流氓</div>
         </a>
-        </div>
-      </section>
-      <section class="script-block reveal">
-        <div class="script-head">
-          <p class="section-kicker">SCRIPT</p>
-          <h2 class="section-title">空山</h2>
-          <p class="section-desc">2 封售后</p>
-        </div>
-        <div class="entries">
-          
-        <a class="entry reveal" href="pages/空山/李逸/花想容/index.html">
+        <a class="entry" href="pages/空山/李逸/花想容/index.html">
           <div class="entry-visual entry-visual--plain"><span>信</span></div>
           <div class="entry-body">
-            <p class="entry-script">我方 · 李逸</p>
+            <p class="entry-script">剧本 · 空山　/　我方 · 李逸</p>
             <h3 class="entry-name">致花想容</h3>
             <p class="entry-blurb">视频售后</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">空山</div>
         </a>
-        <a class="entry reveal" href="pages/空山/李逸/阿绿姑娘/index.html">
+        <a class="entry" href="pages/空山/李逸/阿绿姑娘/index.html">
           <div class="entry-visual entry-visual--plain"><span>信</span></div>
           <div class="entry-body">
-            <p class="entry-script">我方 · 李逸</p>
+            <p class="entry-script">剧本 · 空山　/　我方 · 李逸</p>
             <h3 class="entry-name">致阿绿姑娘</h3>
             <p class="entry-blurb">视频售后</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">空山</div>
         </a>
-        </div>
-      </section>
-      <section class="script-block reveal">
-        <div class="script-head">
-          <p class="section-kicker">SCRIPT</p>
-          <h2 class="section-title">贪欢</h2>
-          <p class="section-desc">1 封售后</p>
-        </div>
-        <div class="entries">
-          
-        <a class="entry reveal" href="pages/贪欢/林江/武宁/index.html">
-          <div class="entry-visual"><img src="贪欢/林江/武宁/images/spring.jpg" alt="" /></div>
+        <a class="entry" href="pages/贪欢/林江/武宁/index.html">
+          <div class="entry-visual"><img src="https://zhaohe33.github.io/jubensha-shouhou/media/tan-huan-spring.jpg" alt="" loading="lazy" /></div>
           <div class="entry-body">
-            <p class="entry-script">我方 · 林江</p>
+            <p class="entry-script">剧本 · 贪欢　/　我方 · 林江</p>
             <h3 class="entry-name">致武宁</h3>
             <p class="entry-blurb">图文售后</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">贪欢</div>
         </a>
-        </div>
-      </section>
-      <section class="script-block reveal">
-        <div class="script-head">
-          <p class="section-kicker">SCRIPT</p>
-          <h2 class="section-title">青白</h2>
-          <p class="section-desc">1 封售后</p>
-        </div>
-        <div class="entries">
-          
-        <a class="entry reveal" href="pages/青白/苏无恙/阿喜/index.html">
-          <div class="entry-visual"><img src="青白/苏无恙/阿喜/images/ChatGPT-Image-Jun-22--20-1782112485554.jpg" alt="" /></div>
+        <a class="entry" href="pages/青白/苏无恙/阿喜/index.html">
+          <div class="entry-visual"><img src="https://zhaohe33.github.io/jubensha-shouhou/media/qingbai-axi.jpg" alt="" loading="lazy" /></div>
           <div class="entry-body">
-            <p class="entry-script">我方 · 苏无恙</p>
+            <p class="entry-script">剧本 · 青白　/　我方 · 苏无恙</p>
             <h3 class="entry-name">致阿喜</h3>
             <p class="entry-blurb">胆小鬼，欢迎回到现实世界。</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
           <div class="entry-seal" aria-hidden="true">青白</div>
         </a>
-        </div>
-      </section>
+      </div>
     </main>
 
-    <footer>剧本杀售后合集 · 共 13 封</footer>
+    <footer>剧本杀售后合集</footer>
   </div>
-  <script>
-    const reveals = document.querySelectorAll(".reveal");
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-in");
-          io.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
-    reveals.forEach((el, i) => {
-      el.style.transitionDelay = `${Math.min(i * 0.06, 0.3)}s`;
-      io.observe(el);
-    });
-  </script>
 </body>
 </html>

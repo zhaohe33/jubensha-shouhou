@@ -64,6 +64,13 @@ h1 {
 
 .media audio { width: 100%; margin-top: 1rem; }
 .inline-video { margin: 1.6rem 0 1.8rem; }
+.music-embed { margin-top: 1.4rem; }
+.music-embed .music-label {
+  font-size: 0.82rem; letter-spacing: 0.28em; color: var(--fade); margin-bottom: 0.7rem;
+}
+.music-embed iframe {
+  width: 100%; aspect-ratio: 16 / 9; border: 1px solid var(--line); background: #000;
+}
   </style>
 </head>
 <body>
@@ -96,8 +103,12 @@ h1 {
         <p>收藏家</p>
     </article>
       <div class="media">
-        <img src="https://zhaohe33.github.io/jubensha-shouhou/%E9%9D%92%E7%99%BD/%E8%8B%8F%E6%97%A0%E6%81%99/%E9%98%BF%E5%96%9C/images/ChatGPT-Image-Jun-22--20-1782112485554.jpg" alt="致阿喜" />
-        <a class="pdf" href="https://www.youtube.com/watch?v=hvpvTWJMKBg" target="_blank" rel="noopener">打开背景音乐</a>
+        <img src="https://zhaohe33.github.io/jubensha-shouhou/media/qingbai-axi.jpg" alt="致阿喜" />
+        <div class="music-embed">
+          <p class="music-label">背景音乐</p>
+          <iframe src="https://www.youtube.com/embed/hvpvTWJMKBg?rel=0&loop=1&playlist=hvpvTWJMKBg" title="背景音乐" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+          <a class="pdf" href="https://www.youtube.com/watch?v=hvpvTWJMKBg" target="_blank" rel="noopener">在 YouTube 打开</a>
+        </div>
       </div>
   </div>
 </body>

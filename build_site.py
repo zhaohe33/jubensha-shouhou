@@ -29,6 +29,15 @@ PDF_ALIASES = {
 
 IMAGE_ALIASES = {
     "流氓叙事/蒋伯驾/缪宏谟/0c007671bb0e112e1da943bb431d99f5.jpg": "media/liumang-miaohongmo.jpg",
+    "贪欢/林江/武宁/images/spring.jpg": "media/tan-huan-spring.jpg",
+    "贪欢/林江/武宁/images/summer.jpg": "media/tan-huan-summer.jpg",
+    "贪欢/林江/武宁/images/autumn.jpg": "media/tan-huan-autumn.jpg",
+    "贪欢/林江/武宁/images/winter.jpg": "media/tan-huan-winter.jpg",
+    "青白/苏无恙/阿喜/images/ChatGPT-Image-Jun-22--20-1782112485554.jpg": "media/qingbai-axi.jpg",
+}
+
+AUDIO_ALIASES = {
+    "贪欢/林江/武宁/music/bgm-soft.mp3": "media/tan-huan-bgm.mp3",
 }
 
 
@@ -303,7 +312,9 @@ def make_entry(script: str, me: str, target: str, folder: Path, extra_files: lis
 
     remote_image = share.get("image") or ""
     youtube = share.get("youtube") or ""
-    if not cover and remote_image:
+    if cover and not str(cover).startswith("http"):
+        cover = resolve_asset_url(cover)
+    elif not cover and remote_image:
         cover = remote_image
 
     title = share.get("title") or (f"致{target}" if target != "售后" else f"{me} · 售后")
@@ -343,8 +354,24 @@ def depth_prefix(rel_path: str) -> str:
     return "../" * (len(Path(rel_path).parts) - 1)
 
 
+def resolve_asset_url(rel_posix_path: str) -> str:
+    key = rel_posix_path.replace("\\", "/")
+    for table in (VIDEO_ALIASES, PDF_ALIASES, IMAGE_ALIASES, AUDIO_ALIASES):
+        alias = table.get(key)
+        if alias and (ROOT / alias).exists():
+            return pages_url(alias)
+    return pages_url(key)
+
+
+def youtube_id(url: str) -> str | None:
+    if not url:
+        return None
+    m = re.search(r"(?:v=|youtu\.be/|embed/)([A-Za-z0-9_-]{6,})", url)
+    return m.group(1) if m else None
+
+
 def write_rich_page(entry: dict) -> None:
-    """Adapt an existing immersive page into pages/ with CDN asset paths."""
+    """Adapt an existing immersive page into pages/ with reliable asset URLs."""
     src = ROOT / entry["rich_src"]
     out = ROOT / entry["view_rel"]
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -352,11 +379,22 @@ def write_rich_page(entry: dict) -> None:
     folder = entry["folder"]
     text = src.read_text(encoding="utf-8")
 
-    # Rewrite local asset folders to jsDelivr for reliable playback
-    text = text.replace('src="images/', f'src="{cdn_url(folder + "/images/")}')
-    text = text.replace("src='images/", f"src='{cdn_url(folder + '/images/')}")
-    text = text.replace('src="music/', f'src="{cdn_url(folder + "/music/")}')
-    text = text.replace("src='music/", f"src='{cdn_url(folder + '/music/')}")
+    # Map known local relative assets to ASCII media URLs / Pages URLs
+    folder_path = ROOT / folder
+    for sub in ("images", "music"):
+        d = folder_path / sub
+        if not d.is_dir():
+            continue
+        for f in d.iterdir():
+            if not f.is_file():
+                continue
+            rel = rel_posix(f)
+            url = resolve_asset_url(rel)
+            text = re.sub(
+                rf'src=(["\']){re.escape(sub + "/" + f.name)}(?:\?[^"\']*)?\1',
+                lambda m, u=url: f"src={m.group(1)}{u}{m.group(1)}",
+                text,
+            )
 
     back = (
         f'<a href="{prefix}index.html" style="position:fixed;top:1rem;left:1rem;z-index:50;'
@@ -406,18 +444,27 @@ def write_letter_page(entry: dict) -> None:
         if img.startswith("http"):
             src = img
         else:
-            key = img.replace("\\", "/")
-            alias = IMAGE_ALIASES.get(key)
-            src = pages_url(alias) if alias and (ROOT / alias).exists() else pages_url(img)
+            src = resolve_asset_url(img)
         media_blocks.append(
             f'        <img src="{html.escape(src)}" alt="{html.escape(entry["title"])}" />'
         )
     for audio in entry.get("audios") or []:
-        src = cdn_url(audio)
+        src = resolve_asset_url(audio)
         media_blocks.append(
             f'        <audio controls preload="metadata" src="{html.escape(src)}"></audio>'
         )
-    if entry.get("youtube"):
+    yt = youtube_id(entry.get("youtube") or "")
+    if yt:
+        media_blocks.append(
+            '        <div class="music-embed">\n'
+            '          <p class="music-label">背景音乐</p>\n'
+            f'          <iframe src="https://www.youtube.com/embed/{html.escape(yt)}?rel=0&loop=1&playlist={html.escape(yt)}" '
+            'title="背景音乐" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" '
+            'allowfullscreen loading="lazy"></iframe>\n'
+            f'          <a class="pdf" href="{html.escape(entry["youtube"])}" target="_blank" rel="noopener">在 YouTube 打开</a>\n'
+            "        </div>"
+        )
+    elif entry.get("youtube"):
         media_blocks.append(
             f'        <a class="pdf" href="{html.escape(entry["youtube"])}" target="_blank" rel="noopener">打开背景音乐</a>'
         )
@@ -445,6 +492,13 @@ def write_letter_page(entry: dict) -> None:
   <style>{LETTER_CSS}
 .media audio {{ width: 100%; margin-top: 1rem; }}
 .inline-video {{ margin: 1.6rem 0 1.8rem; }}
+.music-embed {{ margin-top: 1.4rem; }}
+.music-embed .music-label {{
+  font-size: 0.82rem; letter-spacing: 0.28em; color: var(--fade); margin-bottom: 0.7rem;
+}}
+.music-embed iframe {{
+  width: 100%; aspect-ratio: 16 / 9; border: 1px solid var(--line); background: #000;
+}}
   </style>
 </head>
 <body>
@@ -466,44 +520,27 @@ def write_letter_page(entry: dict) -> None:
 
 
 def render_hub(entries: list[dict]) -> str:
-    # group by script, preserve discovery order by script name
-    scripts: dict[str, list[dict]] = {}
+    cards = []
     for e in entries:
-        scripts.setdefault(e["script"], []).append(e)
-
-    sections = []
-    for script, items in scripts.items():
-        cards = []
-        for e in items:
-            href = html.escape(href_for(e), quote=True)
-            cover = e["cover"]
-            visual = (
-                f'<div class="entry-visual"><img src="{html.escape(cover)}" alt="" /></div>'
-                if cover
-                else '<div class="entry-visual entry-visual--plain"><span>信</span></div>'
-            )
-            cards.append(f"""
-        <a class="entry reveal" href="{href}">
+        href = html.escape(href_for(e), quote=True)
+        cover = e["cover"]
+        visual = (
+            f'<div class="entry-visual"><img src="{html.escape(cover)}" alt="" loading="lazy" /></div>'
+            if cover
+            else '<div class="entry-visual entry-visual--plain"><span>信</span></div>'
+        )
+        seal = html.escape(e["script"][:2])
+        cards.append(f"""
+        <a class="entry" href="{href}">
           {visual}
           <div class="entry-body">
-            <p class="entry-script">我方 · {html.escape(e['me'])}</p>
+            <p class="entry-script">剧本 · {html.escape(e['script'])}　/　我方 · {html.escape(e['me'])}</p>
             <h3 class="entry-name">{html.escape(e['title'])}</h3>
             <p class="entry-blurb">{html.escape(e['blurb'])}</p>
             <p class="entry-go">阅读售后 <span aria-hidden="true">→</span></p>
           </div>
-          <div class="entry-seal" aria-hidden="true">{html.escape(script[:2])}</div>
+          <div class="entry-seal" aria-hidden="true">{seal}</div>
         </a>""")
-        sections.append(f"""
-      <section class="script-block reveal">
-        <div class="script-head">
-          <p class="section-kicker">SCRIPT</p>
-          <h2 class="section-title">{html.escape(script)}</h2>
-          <p class="section-desc">{len(items)} 封售后</p>
-        </div>
-        <div class="entries">
-          {''.join(cards)}
-        </div>
-      </section>""")
 
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -526,7 +563,6 @@ def render_hub(entries: list[dict]) -> str:
       --line: rgba(239, 230, 214, 0.16);
     }}
     * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    html {{ scroll-behavior: smooth; }}
     body {{
       font-family: "Noto Serif SC", "Songti SC", serif;
       color: var(--paper);
@@ -549,70 +585,35 @@ def render_hub(entries: list[dict]) -> str:
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     }}
     .page {{ position: relative; z-index: 2; }}
-    .hero {{
-      min-height: 100vh; min-height: 100dvh;
-      display: grid; place-items: center; text-align: center;
-      padding: 4rem 1.4rem 3rem; position: relative;
+    .top {{
+      text-align: center;
+      padding: 2.4rem 1.4rem 1.6rem;
     }}
-    .hero-brand {{
+    .top-brand {{
       font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(3.6rem, 14vw, 6.2rem);
+      font-size: clamp(2.8rem, 10vw, 4.2rem);
       letter-spacing: 0.22em; line-height: 1; margin-left: 0.22em;
-      opacity: 0; animation: rise 1.3s ease 0.15s forwards;
     }}
-    .hero-line {{
-      width: 2.4rem; height: 1px; margin: 1.7rem auto 1.5rem; background: var(--seal);
-      opacity: 0; animation: fadeIn 1s ease 0.65s forwards;
+    .top-line {{
+      width: 2.2rem; height: 1px; margin: 1.1rem auto 1rem; background: var(--seal);
     }}
-    .hero-lead {{
-      font-size: clamp(1rem, 2.8vw, 1.15rem);
-      letter-spacing: 0.28em; color: var(--paper-soft);
-      opacity: 0; animation: rise 1.2s ease 0.85s forwards;
+    .top-lead {{
+      font-size: 0.95rem; letter-spacing: 0.22em; color: var(--paper-soft);
     }}
-    .hero-cta {{
-      margin-top: 2.4rem; display: inline-flex; align-items: center; gap: 0.7rem;
-      padding: 0.85rem 1.45rem; border: 1px solid rgba(239, 230, 214, 0.35);
-      background: rgba(239, 230, 214, 0.04); color: var(--paper);
-      text-decoration: none; font-size: 0.92rem; letter-spacing: 0.32em;
-      transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
-      opacity: 0; animation: rise 1.1s ease 1.2s forwards;
+    .top-count {{
+      margin-top: 0.55rem; font-size: 0.8rem; letter-spacing: 0.28em; color: var(--fade);
     }}
-    .hero-cta:hover {{
-      border-color: rgba(239, 230, 214, 0.7);
-      background: rgba(239, 230, 214, 0.09);
-      transform: translateY(-2px);
-    }}
-    .scroll-hint {{
-      position: absolute; bottom: 1.8rem; left: 50%; transform: translateX(-50%);
-      font-size: 0.78rem; letter-spacing: 0.35em; color: var(--fade);
-      opacity: 0; animation: pulseHint 2.4s ease 2s infinite;
-    }}
-    .collection {{ max-width: 920px; margin: 0 auto; padding: 1rem 1.4rem 5.5rem; }}
-    .script-block {{ margin-bottom: 3.4rem; }}
-    .script-head {{ text-align: center; margin-bottom: 1.6rem; }}
-    .section-kicker {{
-      font-size: 0.78rem; letter-spacing: 0.42em; color: var(--seal-soft); margin-bottom: 0.55rem;
-    }}
-    .section-title {{
-      font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(1.9rem, 5.5vw, 2.6rem);
-      letter-spacing: 0.18em; margin-left: 0.18em;
-    }}
-    .section-desc {{ margin-top: 0.55rem; color: var(--fade); letter-spacing: 0.12em; font-size: 0.9rem; }}
-    .entries {{ display: flex; flex-direction: column; gap: 1.1rem; }}
+    .collection {{ max-width: 920px; margin: 0 auto; padding: 0.4rem 1.4rem 4.5rem; }}
+    .entries {{ display: flex; flex-direction: column; gap: 1rem; }}
     .entry {{
       position: relative; display: grid;
       grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.3fr);
-      min-height: 188px; text-decoration: none; color: inherit; overflow: hidden;
+      min-height: 168px; text-decoration: none; color: inherit; overflow: hidden;
       border: 1px solid var(--line); background: rgba(28, 24, 20, 0.55);
-      opacity: 0; transform: translateY(22px);
-      transition: opacity 0.9s ease, transform 0.9s ease, border-color 0.35s ease, background 0.35s ease;
+      transition: border-color 0.35s ease, background 0.35s ease;
     }}
-    .entry.is-in, .script-block.is-in .entry {{ opacity: 1; transform: none; }}
-    .script-block.reveal {{ opacity: 0; transform: translateY(18px); transition: opacity .9s ease, transform .9s ease; }}
-    .script-block.is-in {{ opacity: 1; transform: none; }}
     .entry:hover {{ border-color: rgba(239, 230, 214, 0.38); background: rgba(36, 30, 24, 0.72); }}
-    .entry-visual {{ position: relative; min-height: 170px; overflow: hidden; background: #1a1612; }}
+    .entry-visual {{ position: relative; min-height: 150px; overflow: hidden; background: #1a1612; }}
     .entry-visual img {{
       width: 100%; height: 100%; object-fit: cover; display: block;
       transform: scale(1.04); transition: transform 1.1s ease; filter: saturate(0.85) contrast(1.05);
@@ -620,85 +621,60 @@ def render_hub(entries: list[dict]) -> str:
     .entry:hover .entry-visual img {{ transform: scale(1.1); }}
     .entry-visual--plain {{
       display: grid; place-items: center;
-      font-family: "Ma Shan Zheng", cursive; font-size: 2.4rem; color: rgba(239,230,214,.28);
+      font-family: "Ma Shan Zheng", cursive; font-size: 2.2rem; color: rgba(239,230,214,.28);
       letter-spacing: 0.2em;
     }}
     .entry-body {{
       display: flex; flex-direction: column; justify-content: center;
-      padding: 1.35rem 1.4rem 1.35rem 1.25rem; gap: 0.4rem;
+      padding: 1.2rem 1.3rem 1.2rem 1.15rem; gap: 0.35rem;
     }}
-    .entry-script {{ font-size: 0.74rem; letter-spacing: 0.28em; color: var(--seal); }}
+    .entry-script {{ font-size: 0.72rem; letter-spacing: 0.18em; color: var(--seal); }}
     .entry-name {{
       font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(1.7rem, 4.2vw, 2.2rem);
+      font-size: clamp(1.55rem, 4vw, 2.05rem);
       letter-spacing: 0.14em; margin-left: 0.1em; line-height: 1.15;
     }}
-    .entry-blurb {{ color: var(--paper-soft); font-size: 0.92rem; letter-spacing: 0.05em; }}
+    .entry-blurb {{ color: var(--paper-soft); font-size: 0.9rem; letter-spacing: 0.04em; }}
     .entry-go {{
-      margin-top: 0.65rem; display: inline-flex; align-items: center; gap: 0.45rem;
-      font-size: 0.8rem; letter-spacing: 0.28em; color: var(--fade);
+      margin-top: 0.5rem; display: inline-flex; align-items: center; gap: 0.45rem;
+      font-size: 0.78rem; letter-spacing: 0.28em; color: var(--fade);
       transition: color 0.3s ease, gap 0.3s ease;
     }}
     .entry:hover .entry-go {{ color: var(--paper); gap: 0.7rem; }}
     .entry-seal {{
-      position: absolute; top: 0.9rem; right: 0.9rem; width: 2.6rem; height: 2.6rem;
+      position: absolute; top: 0.85rem; right: 0.85rem; width: 2.4rem; height: 2.4rem;
       border: 1.5px solid var(--seal-soft); color: var(--seal);
       display: grid; place-items: center; font-family: "Ma Shan Zheng", cursive;
-      font-size: 0.95rem; transform: rotate(12deg); opacity: 0.7; pointer-events: none;
+      font-size: 0.9rem; transform: rotate(12deg); opacity: 0.7; pointer-events: none;
     }}
     footer {{
-      text-align: center; padding: 0 1.4rem 3.2rem;
+      text-align: center; padding: 0 1.4rem 2.8rem;
       color: rgba(239, 230, 214, 0.35); font-size: 0.78rem; letter-spacing: 0.22em;
-    }}
-    @keyframes rise {{
-      from {{ opacity: 0; transform: translateY(22px); }}
-      to {{ opacity: 1; transform: none; }}
-    }}
-    @keyframes fadeIn {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
-    @keyframes pulseHint {{
-      0%, 100% {{ opacity: 0.22; transform: translateX(-50%) translateY(0); }}
-      50% {{ opacity: 0.55; transform: translateX(-50%) translateY(5px); }}
     }}
     @media (max-width: 720px) {{
       .entry {{ grid-template-columns: 1fr; min-height: 0; }}
-      .entry-visual {{ min-height: 150px; }}
-      .entry-body {{ padding: 1.15rem 1.15rem 1.35rem; }}
+      .entry-visual {{ min-height: 140px; }}
+      .entry-body {{ padding: 1.05rem 1.1rem 1.2rem; }}
     }}
   </style>
 </head>
 <body>
   <div class="page">
-    <header class="hero">
-      <div class="hero-inner">
-        <h1 class="hero-brand">售后</h1>
-        <div class="hero-line" aria-hidden="true"></div>
-        <p class="hero-lead">局终之后，信仍未完</p>
-        <a class="hero-cta" href="#collection">进入合集 <span aria-hidden="true">↓</span></a>
-      </div>
-      <p class="scroll-hint">下滑浏览</p>
+    <header class="top">
+      <h1 class="top-brand">售后</h1>
+      <div class="top-line" aria-hidden="true"></div>
+      <p class="top-lead">局终之后，信仍未完</p>
+      <p class="top-count">全部售后 · {len(entries)} 封</p>
     </header>
 
     <main class="collection" id="collection">
-      {''.join(sections)}
+      <div class="entries">
+        {''.join(cards)}
+      </div>
     </main>
 
-    <footer>剧本杀售后合集 · 共 {len(entries)} 封</footer>
+    <footer>剧本杀售后合集</footer>
   </div>
-  <script>
-    const reveals = document.querySelectorAll(".reveal");
-    const io = new IntersectionObserver((entries) => {{
-      entries.forEach((entry) => {{
-        if (entry.isIntersecting) {{
-          entry.target.classList.add("is-in");
-          io.unobserve(entry.target);
-        }}
-      }});
-    }}, {{ threshold: 0.12, rootMargin: "0px 0px -6% 0px" }});
-    reveals.forEach((el, i) => {{
-      el.style.transitionDelay = `${{Math.min(i * 0.06, 0.3)}}s`;
-      io.observe(el);
-    }});
-  </script>
 </body>
 </html>
 """
