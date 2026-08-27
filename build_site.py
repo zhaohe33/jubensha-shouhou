@@ -27,6 +27,10 @@ PDF_ALIASES = {
     "流氓叙事/程聿怀/程走柳/经典程家菜.pdf": "media/liumang-chengjia-cai.pdf",
 }
 
+IMAGE_ALIASES = {
+    "流氓叙事/蒋伯驾/缪宏谟/0c007671bb0e112e1da943bb431d99f5.jpg": "media/liumang-miaohongmo.jpg",
+}
+
 
 def cdn_url(rel_posix_path: str) -> str:
     """Build a jsDelivr URL for a repo-relative posix path."""
@@ -366,7 +370,12 @@ def write_letter_page(entry: dict) -> None:
                 f'        <a class="pdf" href="{html.escape(src)}" target="_blank" rel="noopener">若无法播放，点此打开/下载视频</a>'
             )
     for img in shown_images:
-        src = img if img.startswith("http") else cdn_url(img)
+        if img.startswith("http"):
+            src = img
+        else:
+            key = img.replace("\\", "/")
+            alias = IMAGE_ALIASES.get(key)
+            src = pages_url(alias) if alias and (ROOT / alias).exists() else pages_url(img)
         media_blocks.append(
             f'        <img src="{html.escape(src)}" alt="{html.escape(entry["title"])}" />'
         )
