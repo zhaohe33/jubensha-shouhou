@@ -23,6 +23,10 @@ VIDEO_ALIASES = {
     "流氓叙事/蒋伯驾/程走柳/视频.mp4": "media/liumang-chengzouliu.mp4",
 }
 
+PDF_ALIASES = {
+    "流氓叙事/程聿怀/程走柳/经典程家菜.pdf": "media/liumang-chengjia-cai.pdf",
+}
+
 
 def cdn_url(rel_posix_path: str) -> str:
     """Build a jsDelivr URL for a repo-relative posix path."""
@@ -376,7 +380,9 @@ def write_letter_page(entry: dict) -> None:
             f'        <a class="pdf" href="{html.escape(entry["youtube"])}" target="_blank" rel="noopener">打开背景音乐</a>'
         )
     for pdf in entry["pdfs"]:
-        src = cdn_url(pdf)
+        key = pdf.replace("\\", "/")
+        alias = PDF_ALIASES.get(key)
+        src = pages_url(alias) if alias and (ROOT / alias).exists() else pages_url(pdf)
         media_blocks.append(
             f'        <a class="pdf" href="{html.escape(src)}" target="_blank" rel="noopener">打开附件 PDF</a>'
         )
