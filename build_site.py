@@ -2,9 +2,11 @@
 """Scan 剧本/我的角色/售后角色 and generate hub + letter pages."""
 from __future__ import annotations
 
+import base64
 import html
 import json
 import re
+import urllib.parse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -75,6 +77,32 @@ def read_url_file(path: Path) -> str | None:
     text = path.read_text(encoding="utf-8", errors="ignore")
     m = re.search(r"URL=(.+)", text)
     return m.group(1).strip() if m else None
+
+
+def decode_share_payload(url: str) -> dict:
+    """Decode jubensha-aftersale share link (?s=...) into title/text/image/youtube."""
+    try:
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+        s = qs.get("s", [""])[0]
+        if not s:
+            return {}
+        pad = "=" * (-len(s) % 4)
+        data = json.loads(base64.urlsafe_b64decode(s + pad))
+        return {
+            "title": data.get("t") or "",
+            "text": data.get("c") or "",
+            "image": data.get("u") or "",
+            "youtube": data.get("y") or "",
+        }
+    except Exception:
+        return {}
+
+
+def is_rich_page(path: Path | None) -> bool:
+    if not path or not path.exists():
+        return False
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    return ("hero-brand" in text) or ('class="season"' in text)
 
 
 def text_to_paragraphs(text: str) -> list[str]:
@@ -157,12 +185,33 @@ def make_entry(script: str, me: str, target: str, folder: Path, extra_files: lis
     if not cover and images:
         cover = rel_posix(images[0])
 
-    external = read_url_file(url_files[0]) if url_files else None
-    existing_page = rel_posix(html_files[0]) if html_files else None
+    existing_src = html_files[0] if html_files else None
+    share_url = read_url_file(url_files[0]) if url_files else None
+    share = decode_share_payload(share_url) if share_url else {}
+
+    # gallery: leaf images + images/ folder
+    gallery: list[str] = [rel_posix(p) for p in images]
+    if images_dir and images_dir.is_dir():
+        for p in sorted(images_dir.iterdir()):
+            if p.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp", ".gif"}:
+                gallery.append(rel_posix(p))
+    # de-dupe preserve order
+    seen = set()
+    gallery_unique = []
+    for g in gallery:
+        if g not in seen:
+            seen.add(g)
+            gallery_unique.append(g)
+    gallery = gallery_unique
+
+    audios = []
+    music_dir = folder / "music" if folder.is_dir() else None
+    if music_dir and music_dir.is_dir():
+        for p in sorted(music_dir.iterdir()):
+            if p.suffix.lower() in {".mp3", ".m4a", ".ogg", ".wav"}:
+                audios.append(rel_posix(p))
 
     text_body = ""
-    text_path = None
-    # Prefer named letter files
     preferred = None
     for p in txt_files:
         if "给" in p.stem or p.stem == "文字" or p.stem == target:
@@ -171,16 +220,22 @@ def make_entry(script: str, me: str, target: str, folder: Path, extra_files: lis
     if not preferred and txt_files:
         preferred = txt_files[0]
     if preferred:
-        text_path = preferred
         text_body = preferred.read_text(encoding="utf-8")
+    elif share.get("text"):
+        text_body = share["text"]
 
-    title = f"致{target}" if target != "售后" else f"{me} · 售后"
+    remote_image = share.get("image") or ""
+    youtube = share.get("youtube") or ""
+    if not cover and remote_image:
+        cover = remote_image
+
+    title = share.get("title") or (f"致{target}" if target != "售后" else f"{me} · 售后")
     blurb = first_line_blurb(text_body, f"{me} → {target}") if text_body.strip() else (
-        "视频售后" if videos else ("图文售后" if images else ("附件售后" if pdfs else "售后"))
+        "视频售后" if videos else ("图文售后" if gallery else ("附件售后" if pdfs else "售后"))
     )
 
-    slug = f"{script}/{me}/{target}"
     view_rel = f"pages/{script}/{me}/{target}/index.html"
+    folder_rel = rel_posix(folder) if folder.is_dir() else rel_posix(folder.parent)
 
     return {
         "script": script,
@@ -189,32 +244,59 @@ def make_entry(script: str, me: str, target: str, folder: Path, extra_files: lis
         "title": title,
         "blurb": blurb,
         "cover": cover,
-        "external": external,
-        "existing_page": existing_page,
+        "rich_src": rel_posix(existing_src) if is_rich_page(existing_src) else None,
         "view_rel": view_rel,
         "text": text_body,
         "videos": [rel_posix(p) for p in videos],
-        "images": [rel_posix(p) for p in images if "images" not in rel_posix(p) or True],
-        "images_only": [rel_posix(p) for p in images],
+        "images_only": gallery,
+        "remote_image": remote_image,
+        "audios": audios,
+        "youtube": youtube,
         "pdfs": [rel_posix(p) for p in pdfs],
-        "folder": rel_posix(folder) if folder.is_dir() else rel_posix(folder.parent),
+        "folder": folder_rel,
     }
 
 
 def href_for(entry: dict) -> str:
-    if entry["external"]:
-        return entry["external"]
-    if entry["existing_page"]:
-        return entry["existing_page"]
     return entry["view_rel"]
 
 
 def depth_prefix(rel_path: str) -> str:
-    return "../" * (len(Path(rel_path).parts))
+    # parts include the filename; climb from the file's directory to repo root
+    return "../" * (len(Path(rel_path).parts) - 1)
+
+
+def write_rich_page(entry: dict) -> None:
+    """Adapt an existing immersive page into pages/ with fixed asset paths."""
+    src = ROOT / entry["rich_src"]
+    out = ROOT / entry["view_rel"]
+    out.parent.mkdir(parents=True, exist_ok=True)
+    prefix = depth_prefix(entry["view_rel"])
+    folder = entry["folder"]
+    text = src.read_text(encoding="utf-8")
+
+    text = text.replace('src="images/', f'src="{prefix}{folder}/images/')
+    text = text.replace("src='images/", f"src='{prefix}{folder}/images/")
+    text = text.replace('src="music/', f'src="{prefix}{folder}/music/')
+    text = text.replace("src='music/", f"src='{prefix}{folder}/music/")
+
+    back = (
+        f'<a href="{prefix}index.html" style="position:fixed;top:1rem;left:1rem;z-index:50;'
+        f'color:rgba(239,230,214,.7);text-decoration:none;font-size:.82rem;letter-spacing:.22em;'
+        f'font-family:Noto Serif SC,Songti SC,serif;padding:.45rem .75rem;'
+        f'border:1px solid rgba(239,230,214,.18);background:rgba(16,14,12,.55);'
+        f'backdrop-filter:blur(8px)">← 返回合集</a>\n'
+    )
+    if "<body>" in text:
+        text = text.replace("<body>", "<body>\n" + back, 1)
+    else:
+        text = back + text
+    out.write_text(text, encoding="utf-8")
 
 
 def write_letter_page(entry: dict) -> None:
-    if entry["external"] or entry["existing_page"]:
+    if entry.get("rich_src"):
+        write_rich_page(entry)
         return
 
     out = ROOT / entry["view_rel"]
@@ -225,14 +307,27 @@ def write_letter_page(entry: dict) -> None:
     prose = "\n".join(f"        <p>{p}</p>" for p in paras) if paras else '        <p class="empty">（暂无文字）</p>'
 
     media_blocks = []
+    # Prefer local gallery; else remote share image
+    shown_images = list(entry["images_only"])
+    if not shown_images and entry.get("remote_image"):
+        shown_images = [entry["remote_image"]]
+
     for v in entry["videos"]:
         media_blocks.append(
             f'        <video controls playsinline src="{html.escape(prefix + v)}"></video>'
         )
-    for img in entry["images_only"]:
-        # skip if it's under a generated path weirdness; show leaf images
+    for img in shown_images:
+        src = img if img.startswith("http") else prefix + img
         media_blocks.append(
-            f'        <img src="{html.escape(prefix + img)}" alt="{html.escape(entry["title"])}" />'
+            f'        <img src="{html.escape(src)}" alt="{html.escape(entry["title"])}" />'
+        )
+    for audio in entry.get("audios") or []:
+        media_blocks.append(
+            f'        <audio controls src="{html.escape(prefix + audio)}"></audio>'
+        )
+    if entry.get("youtube"):
+        media_blocks.append(
+            f'        <a class="pdf" href="{html.escape(entry["youtube"])}" target="_blank" rel="noopener">打开背景音乐</a>'
         )
     for pdf in entry["pdfs"]:
         media_blocks.append(
@@ -242,6 +337,7 @@ def write_letter_page(entry: dict) -> None:
     if media_blocks:
         media_html = '      <div class="media">\n' + "\n".join(media_blocks) + "\n      </div>"
 
+    # For letter-with-image pages, show image after first paragraph feel: image first if only image+text
     page = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -251,7 +347,9 @@ def write_letter_page(entry: dict) -> None:
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>{LETTER_CSS}</style>
+  <style>{LETTER_CSS}
+.media audio {{ width: 100%; margin-top: 1rem; }}
+  </style>
 </head>
 <body>
   <div class="wrap">
@@ -288,9 +386,8 @@ def render_hub(entries: list[dict]) -> str:
                 if cover
                 else '<div class="entry-visual entry-visual--plain"><span>信</span></div>'
             )
-            ext_note = ' target="_blank" rel="noopener"' if e["external"] else ""
             cards.append(f"""
-        <a class="entry reveal" href="{href}"{ext_note}>
+        <a class="entry reveal" href="{href}">
           {visual}
           <div class="entry-body">
             <p class="entry-script">我方 · {html.escape(e['me'])}</p>
