@@ -742,9 +742,20 @@ def render_portal(entry_count: int) -> str:
 """
 
 
+def filter_options(values: list[str]) -> str:
+    opts = ['<option value="">全部</option>']
+    for v in sorted(set(values), key=lambda x: x):
+        opts.append(f'<option value="{html.escape(v, quote=True)}">{html.escape(v)}</option>')
+    return "\n          ".join(opts)
+
+
 def render_hub(entries: list[dict]) -> str:
     cards = []
+    scripts, authors, targets = [], [], []
     for e in entries:
+        scripts.append(e["script"])
+        authors.append(e["me"])
+        targets.append(e["target"])
         href = "../" + html.escape(href_for(e), quote=True)
         cover = e["cover"]
         if cover and not str(cover).startswith("http"):
@@ -759,7 +770,7 @@ def render_hub(entries: list[dict]) -> str:
         if len(blurb) > 28:
             blurb = blurb[:28] + "…"
         cards.append(f"""
-        <a class="entry" href="{href}">
+        <a class="entry" href="{href}" data-script="{html.escape(e['script'])}" data-me="{html.escape(e['me'])}" data-target="{html.escape(e['target'])}">
           {visual}
           <div class="entry-body">
             <p class="entry-script">{html.escape(e['script'])} · {html.escape(e['me'])}</p>
@@ -831,6 +842,61 @@ def render_hub(entries: list[dict]) -> str:
       margin-top: 0.35rem; font-size: 0.72rem; letter-spacing: 0.24em; color: var(--fade);
     }}
     {SITE_BASE_CSS}
+    .filters {{
+      max-width: 1100px;
+      margin: 0 auto 0.75rem;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+      gap: 0.5rem;
+      align-items: end;
+    }}
+    .filter label {{
+      display: block;
+      font-size: 0.68rem;
+      letter-spacing: 0.16em;
+      color: var(--fade);
+      margin-bottom: 0.3rem;
+    }}
+    .filter select {{
+      width: 100%;
+      background: rgba(28, 24, 20, 0.72);
+      border: 1px solid var(--line);
+      color: var(--paper);
+      padding: 0.5rem 0.55rem;
+      font-family: inherit;
+      font-size: 0.82rem;
+      border-radius: 2px;
+      appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, var(--fade) 50%), linear-gradient(135deg, var(--fade) 50%, transparent 50%);
+      background-position: calc(100% - 14px) 52%, calc(100% - 9px) 52%;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+    }}
+    .filter select:focus {{ outline: none; border-color: rgba(239, 230, 214, 0.45); }}
+    .filter-reset {{
+      border: 1px solid rgba(239, 230, 214, 0.22);
+      background: transparent;
+      color: var(--fade);
+      padding: 0.5rem 0.75rem;
+      font-family: inherit;
+      font-size: 0.76rem;
+      letter-spacing: 0.14em;
+      cursor: pointer;
+      white-space: nowrap;
+    }}
+    .filter-reset:hover {{ color: var(--paper); border-color: rgba(239, 230, 214, 0.5); }}
+    .filter-empty {{
+      display: none;
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--fade);
+      letter-spacing: 0.12em;
+      font-size: 0.88rem;
+    }}
+    .filter-empty.visible {{ display: block; }}
+    .entry.is-hidden {{ display: none !important; }}
     .collection {{
       max-width: 1100px;
       margin: 0 auto;
@@ -904,6 +970,8 @@ def render_hub(entries: list[dict]) -> str:
     }}
     @media (max-width: 900px) {{
       .entries {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }}
+      .filters {{ grid-template-columns: 1fr 1fr; }}
+      .filter-reset {{ grid-column: 1 / -1; }}
     }}
     @media (max-width: 520px) {{
       .entries {{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }}
@@ -911,6 +979,7 @@ def render_hub(entries: list[dict]) -> str:
       .entry-blurb {{ -webkit-line-clamp: 1; }}
       .top {{ padding: 1.2rem 0.8rem 0.7rem; }}
       .collection {{ padding: 0.1rem 0.7rem 2.2rem; }}
+      .filters {{ grid-template-columns: 1fr; padding: 0 0.7rem; }}
     }}
   </style>
 </head>
@@ -920,18 +989,115 @@ def render_hub(entries: list[dict]) -> str:
       <h1 class="top-brand">售后</h1>
       <div class="top-line" aria-hidden="true"></div>
       <p class="top-lead">公开售后合集</p>
-      <p class="top-count">共 {len(entries)} 封</p>
+      <p class="top-count" id="resultCount">共 {len(entries)} 封</p>
       {site_nav("browse", "../")}
     </header>
 
+    <form class="filters" id="filters" aria-label="筛选售后">
+      <div class="filter">
+        <label for="filterScript">剧本</label>
+        <select id="filterScript" name="script">
+          {filter_options(scripts)}
+        </select>
+      </div>
+      <div class="filter">
+        <label for="filterMe">谁写的</label>
+        <select id="filterMe" name="me">
+          {filter_options(authors)}
+        </select>
+      </div>
+      <div class="filter">
+        <label for="filterTarget">送给谁</label>
+        <select id="filterTarget" name="target">
+          {filter_options(targets)}
+        </select>
+      </div>
+      <button class="filter-reset" type="button" id="filterReset">重置</button>
+    </form>
+
     <main class="collection" id="collection">
-      <div class="entries">
+      <div class="entries" id="entries">
         {''.join(cards)}
       </div>
+      <p class="filter-empty" id="filterEmpty">没有符合筛选条件的售后</p>
     </main>
 
     <footer>剧本杀售后合集</footer>
   </div>
+  <script>
+    (function () {{
+      const total = {len(entries)};
+      const entries = Array.from(document.querySelectorAll(".entry"));
+      const scriptEl = document.getElementById("filterScript");
+      const meEl = document.getElementById("filterMe");
+      const targetEl = document.getElementById("filterTarget");
+      const resetEl = document.getElementById("filterReset");
+      const countEl = document.getElementById("resultCount");
+      const emptyEl = document.getElementById("filterEmpty");
+
+      function readParams() {{
+        const p = new URLSearchParams(location.search);
+        return {{
+          script: p.get("script") || "",
+          me: p.get("me") || "",
+          target: p.get("target") || "",
+        }};
+      }}
+
+      function writeParams(script, me, target) {{
+        const p = new URLSearchParams();
+        if (script) p.set("script", script);
+        if (me) p.set("me", me);
+        if (target) p.set("target", target);
+        const qs = p.toString();
+        history.replaceState(null, "", qs ? ("?" + qs) : location.pathname);
+      }}
+
+      function applyFilters() {{
+        const script = scriptEl.value;
+        const me = meEl.value;
+        const target = targetEl.value;
+        let visible = 0;
+        entries.forEach((el) => {{
+          const ok =
+            (!script || el.dataset.script === script) &&
+            (!me || el.dataset.me === me) &&
+            (!target || el.dataset.target === target);
+          el.classList.toggle("is-hidden", !ok);
+          if (ok) visible++;
+        }});
+        countEl.textContent = visible === total
+          ? `共 ${{total}} 封`
+          : `显示 ${{visible}} / ${{total}} 封`;
+        emptyEl.classList.toggle("visible", visible === 0);
+        writeParams(script, me, target);
+      }}
+
+      function setSelect(el, value) {{
+        if (!value) return;
+        for (const opt of el.options) {{
+          if (opt.value === value) {{ el.value = value; return; }}
+        }}
+      }}
+
+      const initial = readParams();
+      setSelect(scriptEl, initial.script);
+      setSelect(meEl, initial.me);
+      setSelect(targetEl, initial.target);
+
+      scriptEl.addEventListener("change", applyFilters);
+      meEl.addEventListener("change", applyFilters);
+      targetEl.addEventListener("change", applyFilters);
+      resetEl.addEventListener("click", () => {{
+        scriptEl.value = "";
+        meEl.value = "";
+        targetEl.value = "";
+        applyFilters();
+      }});
+
+      applyFilters();
+    }})();
+  </script>
 </body>
 </html>
 """
