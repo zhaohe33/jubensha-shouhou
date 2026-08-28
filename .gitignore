@@ -1,6 +1,9 @@
 ﻿**/.git.bak-hub/
 **/.git.bak-hub/**
 
+dist/
+.wrangler/
+
 # Scratch downloads while mapping Qiandao covers
 media/covers/_candidates/
 

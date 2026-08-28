@@ -85,6 +85,23 @@ def pages_url(rel_posix_path: str) -> str:
     return PAGES_BASE + "/".join(urllib.parse.quote(p) for p in parts if p)
 
 
+def alias_for(rel_posix_path: str) -> str:
+    key = rel_posix_path.replace("\\", "/")
+    for table in (VIDEO_ALIASES, PDF_ALIASES, IMAGE_ALIASES, AUDIO_ALIASES):
+        alias = table.get(key)
+        if alias and (ROOT / alias).exists():
+            return alias
+    return key
+
+
+def asset_url(rel_posix_path: str, from_rel: str = "index.html") -> str:
+    """Repo-relative asset URL from a generated HTML file path."""
+    path = alias_for(rel_posix_path)
+    prefix = depth_prefix(from_rel)
+    parts = path.replace("\\", "/").split("/")
+    return prefix + "/".join(urllib.parse.quote(p) for p in parts if p)
+
+
 def video_play_url(rel_posix_path: str) -> str:
     """Prefer ASCII media/ alias; fall back to Pages URL."""
     alias = VIDEO_ALIASES.get(rel_posix_path.replace("\\", "/"))
@@ -217,18 +234,16 @@ VIDEO_PLACEHOLDER_RE = re.compile(r"^——?\s*[（(]\s*视频\s*[）)]\s*$")
 def video_embed_html(v: str, prefix: str) -> str:
     alias = VIDEO_ALIASES.get(v.replace("\\", "/"))
     if alias and (ROOT / alias).exists():
-        abs_src = pages_url(alias)
         rel_src = prefix + alias
         return (
             "        <div class=\"media inline-video\">\n"
             "        <video controls playsinline preload=\"metadata\">\n"
-            f'          <source src="{html.escape(abs_src)}" type="video/mp4" />\n'
             f'          <source src="{html.escape(rel_src)}" type="video/mp4" />\n'
             "        </video>\n"
-            f'        <a class="pdf" href="{html.escape(abs_src)}" target="_blank" rel="noopener">若无法播放，点此打开/下载视频</a>\n'
+            f'        <a class="pdf" href="{html.escape(rel_src)}" target="_blank" rel="noopener">若无法播放，点此打开/下载视频</a>\n'
             "        </div>"
         )
-    src = pages_url(v)
+    src = prefix + v.replace("\\", "/")
     return (
         "        <div class=\"media inline-video\">\n"
         f'        <video controls playsinline preload="metadata" src="{html.escape(src)}"></video>\n'
@@ -352,7 +367,7 @@ def make_entry(script: str, me: str, target: str, folder: Path, extra_files: lis
     remote_image = share.get("image") or ""
     youtube = share.get("youtube") or ""
     if cover and not str(cover).startswith("http"):
-        cover = resolve_asset_url(cover)
+        cover = asset_url(cover, "index.html")
     elif not cover and remote_image:
         cover = remote_image
 
@@ -393,15 +408,6 @@ def depth_prefix(rel_path: str) -> str:
     return "../" * (len(Path(rel_path).parts) - 1)
 
 
-def resolve_asset_url(rel_posix_path: str) -> str:
-    key = rel_posix_path.replace("\\", "/")
-    for table in (VIDEO_ALIASES, PDF_ALIASES, IMAGE_ALIASES, AUDIO_ALIASES):
-        alias = table.get(key)
-        if alias and (ROOT / alias).exists():
-            return pages_url(alias)
-    return pages_url(key)
-
-
 def youtube_id(url: str) -> str | None:
     if not url:
         return None
@@ -428,7 +434,7 @@ def write_rich_page(entry: dict) -> None:
             if not f.is_file():
                 continue
             rel = rel_posix(f)
-            url = resolve_asset_url(rel)
+            url = asset_url(rel, entry["view_rel"])
             text = re.sub(
                 rf'src=(["\']){re.escape(sub + "/" + f.name)}(?:\?[^"\']*)?\1',
                 lambda m, u=url: f"src={m.group(1)}{u}{m.group(1)}",
@@ -483,12 +489,12 @@ def write_letter_page(entry: dict) -> None:
         if img.startswith("http"):
             src = img
         else:
-            src = resolve_asset_url(img)
+            src = asset_url(img, entry["view_rel"])
         media_blocks.append(
             f'        <img src="{html.escape(src)}" alt="{html.escape(entry["title"])}" />'
         )
     for audio in entry.get("audios") or []:
-        src = resolve_asset_url(audio)
+        src = asset_url(audio, entry["view_rel"])
         media_blocks.append(
             f'        <audio controls preload="metadata" src="{html.escape(src)}"></audio>'
         )
@@ -510,7 +516,7 @@ def write_letter_page(entry: dict) -> None:
     for pdf in entry["pdfs"]:
         key = pdf.replace("\\", "/")
         alias = PDF_ALIASES.get(key)
-        src = pages_url(alias) if alias and (ROOT / alias).exists() else pages_url(pdf)
+        src = asset_url(alias if alias and (ROOT / alias).exists() else pdf, entry["view_rel"])
         media_blocks.append(
             f'        <a class="pdf" href="{html.escape(src)}" target="_blank" rel="noopener">打开附件 PDF</a>'
         )
