@@ -724,7 +724,7 @@ def render_portal(entry_count: int) -> str:
       <a class="feature" href="browse/">
         <p class="feature-tag">功能一</p>
         <h2>公开售后</h2>
-        <p>浏览目前已公开的 {entry_count} 封售后信。按剧本与角色整理，点击进入沉浸式阅读。</p>
+        <p>浏览目前已公开的 {entry_count} 封售后信。按剧本与角色整理，点击进入沉浸式阅读。玩家公开投稿也会显示在此。</p>
         <span class="feature-cta">进入合集 →</span>
       </a>
       <a class="feature" href="create/">
@@ -897,6 +897,13 @@ def render_hub(entries: list[dict]) -> str:
     }}
     .filter-empty.visible {{ display: block; }}
     .entry.is-hidden {{ display: none !important; }}
+    .entry-user .entry-seal {{ border-color: rgba(239, 230, 214, 0.35); color: var(--paper-soft); }}
+    .entry-badge {{
+      position: absolute; left: 0.55rem; top: 0.55rem; z-index: 2;
+      font-size: 0.62rem; letter-spacing: 0.12em; padding: 0.2rem 0.4rem;
+      border: 1px solid rgba(239, 230, 214, 0.28); color: var(--fade);
+      background: rgba(16, 14, 12, 0.65); pointer-events: none;
+    }}
     .collection {{
       max-width: 1100px;
       margin: 0 auto;
@@ -1026,14 +1033,15 @@ def render_hub(entries: list[dict]) -> str:
   </div>
   <script>
     (function () {{
-      const total = {len(entries)};
-      const entries = Array.from(document.querySelectorAll(".entry"));
+      const builtinTotal = {len(entries)};
+      let entries = Array.from(document.querySelectorAll(".entry"));
       const scriptEl = document.getElementById("filterScript");
       const meEl = document.getElementById("filterMe");
       const targetEl = document.getElementById("filterTarget");
       const resetEl = document.getElementById("filterReset");
       const countEl = document.getElementById("resultCount");
       const emptyEl = document.getElementById("filterEmpty");
+      const entriesEl = document.getElementById("entries");
 
       function readParams() {{
         const p = new URLSearchParams(location.search);
@@ -1053,6 +1061,51 @@ def render_hub(entries: list[dict]) -> str:
         history.replaceState(null, "", qs ? ("?" + qs) : location.pathname);
       }}
 
+      function ensureOption(select, value) {{
+        if (!value) return;
+        for (const opt of select.options) {{
+          if (opt.value === value) return;
+        }}
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = value;
+        select.appendChild(opt);
+        const options = Array.from(select.options).slice(1);
+        options.sort((a, b) => a.value.localeCompare(b.value, "zh-CN"));
+        select.innerHTML = '<option value="">全部</option>';
+        options.forEach((o) => select.appendChild(o));
+      }}
+
+      function esc(s) {{
+        return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+      }}
+
+      function createUserCard(item) {{
+        const script = item.script || "玩家创作";
+        const me = item.me || "";
+        const target = item.target || "";
+        const seal = esc(script.slice(0, 2) || "信");
+        const visual = item.hasImage
+          ? `<div class="entry-visual"><img src="../api/img/${{esc(item.id)}}" alt="" loading="lazy" /></div>`
+          : '<div class="entry-visual entry-visual--plain"><span>信</span></div>';
+        const card = document.createElement("a");
+        card.className = "entry entry-user";
+        card.href = `../p/${{esc(item.id)}}`;
+        card.dataset.script = script;
+        card.dataset.me = me;
+        card.dataset.target = target;
+        card.innerHTML = `
+          <span class="entry-badge">玩家</span>
+          ${{visual}}
+          <div class="entry-body">
+            <p class="entry-script">${{esc(script)}}${{me ? ` · ${{esc(me)}}` : ""}}</p>
+            <h3 class="entry-name">${{esc(item.title)}}</h3>
+            <p class="entry-blurb">${{esc(item.blurb || "")}}</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">${{seal}}</div>`;
+        return card;
+      }}
+
       function applyFilters() {{
         const script = scriptEl.value;
         const me = meEl.value;
@@ -1066,6 +1119,7 @@ def render_hub(entries: list[dict]) -> str:
           el.classList.toggle("is-hidden", !ok);
           if (ok) visible++;
         }});
+        const total = entries.length;
         countEl.textContent = visible === total
           ? `共 ${{total}} 封`
           : `显示 ${{visible}} / ${{total}} 封`;
@@ -1075,9 +1129,27 @@ def render_hub(entries: list[dict]) -> str:
 
       function setSelect(el, value) {{
         if (!value) return;
-        for (const opt of el.options) {{
-          if (opt.value === value) {{ el.value = value; return; }}
+        ensureOption(el, value);
+        el.value = value;
+      }}
+
+      async function loadPublicEntries() {{
+        try {{
+          const res = await fetch("/api/public");
+          if (!res.ok) return;
+          const items = await res.json();
+          for (const item of items) {{
+            ensureOption(scriptEl, item.script || "玩家创作");
+            ensureOption(meEl, item.me);
+            ensureOption(targetEl, item.target);
+            const card = createUserCard(item);
+            entriesEl.appendChild(card);
+            entries.push(card);
+          }}
+        }} catch {{
+          /* ignore */
         }}
+        applyFilters();
       }}
 
       const initial = readParams();
@@ -1096,6 +1168,7 @@ def render_hub(entries: list[dict]) -> str:
       }});
 
       applyFilters();
+      loadPublicEntries();
     }})();
   </script>
 </body>

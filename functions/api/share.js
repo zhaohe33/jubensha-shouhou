@@ -60,6 +60,7 @@ export async function onRequestPost(context) {
   const me = String(body.me || "").trim().slice(0, 40);
   const target = String(body.target || "").trim().slice(0, 40);
   const imgs = normalizeImages(body);
+  const isPublic = Boolean(body.public);
 
   if (!title && !content) {
     return json({ error: "请填写标题或正文" }, 400);
@@ -73,6 +74,7 @@ export async function onRequestPost(context) {
     r: target,
     imgs,
     img: imgs[0] || "",
+    p: isPublic ? 1 : 0,
     created: Date.now(),
   };
 
@@ -89,11 +91,34 @@ export async function onRequestPost(context) {
   }
 
   await env.SHARES.put(id, serialized);
+
+  if (isPublic) {
+    const catalogKey = "public:catalog";
+    let catalog = [];
+    try {
+      const catalogRaw = await env.SHARES.get(catalogKey);
+      catalog = catalogRaw ? JSON.parse(catalogRaw) : [];
+    } catch {
+      catalog = [];
+    }
+    catalog = catalog.filter((item) => item.id !== id);
+    catalog.unshift({
+      id,
+      t: payload.t,
+      s: script,
+      m: me,
+      r: target,
+      created: payload.created,
+    });
+    await env.SHARES.put(catalogKey, JSON.stringify(catalog.slice(0, 200)));
+  }
+
   const origin = new URL(request.url).origin;
   return json({
     id,
     url: `${origin}/p/${id}`,
     imageUrl: imgs.length ? `${origin}/api/img/${id}` : "",
     imageCount: imgs.length,
+    public: isPublic,
   });
 }

@@ -122,6 +122,19 @@
     .hint { font-size: 0.72rem; color: var(--fade); margin-top: 0.5rem; line-height: 1.5; letter-spacing: 0.06em; }
     .hint.ok { color: #9fd4a8; }
     .hint.err { color: #e8a8a8; }
+    .public-toggle {
+      display: flex; align-items: flex-start; gap: 0.65rem;
+      padding: 0.75rem; border: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.2); cursor: pointer;
+    }
+    .public-toggle input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--seal); }
+    .public-toggle strong {
+      display: block; font-size: 0.84rem; letter-spacing: 0.1em; font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    .public-toggle small {
+      display: block; font-size: 0.72rem; color: var(--fade); line-height: 1.5; letter-spacing: 0.04em;
+    }
     .preview .meta { font-size: 0.72rem; letter-spacing: 0.24em; color: rgba(156, 47, 42, 0.85); margin-bottom: 0.5rem; }
     .preview h3 {
       font-family: "Ma Shan Zheng", cursive;
@@ -225,6 +238,15 @@
           <div class="img-grid" id="imgGrid"></div>
           <p class="hint" id="imgHint">图片会显示在正文右侧，多张可上下排列。</p>
         </div>
+        <div class="field">
+          <label class="public-toggle">
+            <input id="isPublic" type="checkbox" />
+            <span>
+              <strong>公开到「公开售后」合集</strong>
+              <small>勾选后所有人都能在合集页看到；不勾选则只有持链接的人能访问</small>
+            </span>
+          </label>
+        </div>
         <div class="actions">
           <button class="btn" type="button" id="btnPreview">刷新预览</button>
           <button class="btn primary" type="button" id="btnShare">生成分享链接</button>
@@ -273,7 +295,7 @@
       uploadZone: $("uploadZone"), fileInput: $("fileInput"), imgGrid: $("imgGrid"),
       imgHint: $("imgHint"), statusHint: $("statusHint"),
       pvMeta: $("pvMeta"), pvTitle: $("pvTitle"), pvSub: $("pvSub"), pvContent: $("pvContent"),
-      pvSide: $("pvSide"), pvLayout: $("pvLayout"),
+      pvSide: $("pvSide"), pvLayout: $("pvLayout"), isPublic: $("isPublic"),
       shareModal: $("shareModal"), shareUrl: $("shareUrl"), qrImg: $("qrImg"), modalHint: $("modalHint"),
       btnPreview: $("btnPreview"), btnShare: $("btnShare"), btnCopy: $("btnCopy"), btnNativeShare: $("btnNativeShare"), btnClose: $("btnClose"),
     };
@@ -422,6 +444,7 @@
             me: els.me.value.trim(),
             target: els.target.value.trim(),
             images,
+            public: els.isPublic.checked,
           }),
         });
         const data = await res.json();
@@ -429,9 +452,12 @@
 
         openShareModal(data.url);
         await copyText(data.url);
-        els.statusHint.textContent = "✓ 链接已复制，可粘贴分享";
+        const pubNote = data.public ? "，并已公开到合集" : "（仅链接可访问）";
+        els.statusHint.textContent = `✓ 链接已复制${pubNote}`;
         els.statusHint.className = "hint ok";
-        els.modalHint.textContent = "链接已复制到剪贴板";
+        els.modalHint.textContent = data.public
+          ? "链接已复制，该售后已出现在公开合集"
+          : "链接已复制，未公开到合集";
       } catch (err) {
         els.statusHint.textContent = err.message || "生成失败，请稍后重试";
         els.statusHint.className = "hint err";
