@@ -1,3 +1,7 @@
 name = "jubensha-shouhou"
 compatibility_date = "2024-08-01"
 pages_build_output_dir = "dist"
+
+[[kv_namespaces]]
+binding = "SHARES"
+id = "66f90a9ffd38421d937684f02e327800"

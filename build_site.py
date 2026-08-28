@@ -10,7 +10,7 @@ import urllib.parse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-SKIP_DIRS = {".git", ".git.bak-hub", "__pycache__", "pages", "media", "scripts", ".github"}
+SKIP_DIRS = {".git", ".git.bak-hub", "__pycache__", "pages", "media", "scripts", ".github", "functions", "create", "dist", ".wrangler"}
 # GitHub Pages is often slow/blocked in CN; serve media via jsDelivr
 CDN_BASE = "https://cdn.jsdelivr.net/gh/zhaohe33/jubensha-shouhou@main/"
 PAGES_BASE = "https://zhaohe33.github.io/jubensha-shouhou/"
@@ -650,6 +650,23 @@ def render_hub(entries: list[dict]) -> str:
     .top-count {{
       margin-top: 0.35rem; font-size: 0.72rem; letter-spacing: 0.24em; color: var(--fade);
     }}
+    .top-cta {{
+      margin-top: 1rem;
+    }}
+    .top-cta a {{
+      display: inline-block;
+      padding: 0.55rem 1.1rem;
+      border: 1px solid rgba(239, 230, 214, 0.35);
+      color: var(--paper);
+      text-decoration: none;
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      transition: border-color .25s, background .25s;
+    }}
+    .top-cta a:hover {{
+      border-color: rgba(239, 230, 214, 0.7);
+      background: rgba(156, 47, 42, 0.2);
+    }}
     .collection {{
       max-width: 1100px;
       margin: 0 auto;
@@ -740,6 +757,7 @@ def render_hub(entries: list[dict]) -> str:
       <div class="top-line" aria-hidden="true"></div>
       <p class="top-lead">局终之后，信仍未完</p>
       <p class="top-count">全部售后 · {len(entries)} 封</p>
+      <p class="top-cta"><a href="create/">写一封自己的售后 →</a></p>
     </header>
 
     <main class="collection" id="collection">

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>写一封售后 · 剧本杀售后</title>
+  <meta name="description" content="上传文字与图片，生成可分享的剧本杀售后网页，适用于微信、抖音、小红书。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #100e0c;
+      --paper: #efe6d6;
+      --paper-soft: #cfc3ae;
+      --fade: rgba(239, 230, 214, 0.55);
+      --seal: #9c2f2a;
+      --line: rgba(239, 230, 214, 0.16);
+      --panel: rgba(28, 24, 20, 0.72);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Noto Serif SC", "Songti SC", serif;
+      color: var(--paper);
+      background: var(--ink);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    body::before {
+      content: "";
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 55% at 12% 8%, rgba(120, 48, 40, 0.2), transparent 55%),
+        linear-gradient(180deg, #0c0a09 0%, #14110e 50%, #0f0d0b 100%);
+    }
+    .page { position: relative; z-index: 2; max-width: 920px; margin: 0 auto; padding: 1.2rem 1rem 3rem; }
+    .back {
+      display: inline-block; color: var(--fade); text-decoration: none;
+      font-size: 0.82rem; letter-spacing: 0.22em; margin-bottom: 1.2rem;
+    }
+    .back:hover { color: var(--paper); }
+    .hero { text-align: center; margin-bottom: 1.5rem; }
+    .hero h1 {
+      font-family: "Ma Shan Zheng", cursive;
+      font-size: clamp(2rem, 8vw, 2.8rem);
+      letter-spacing: 0.18em; margin-left: 0.18em;
+    }
+    .hero p { color: var(--paper-soft); font-size: 0.88rem; letter-spacing: 0.12em; margin-top: 0.5rem; }
+    .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      backdrop-filter: blur(8px);
+      padding: 1rem;
+    }
+    .panel h2 {
+      font-size: 0.82rem; letter-spacing: 0.24em; color: rgba(156, 47, 42, 0.9);
+      margin-bottom: 0.9rem;
+    }
+    .field { margin-bottom: 0.85rem; }
+    .field label {
+      display: block; font-size: 0.75rem; letter-spacing: 0.14em;
+      color: var(--fade); margin-bottom: 0.35rem;
+    }
+    .field input, .field textarea {
+      width: 100%; background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--line); color: var(--paper);
+      padding: 0.65rem 0.75rem; font-family: inherit; font-size: 0.92rem;
+      border-radius: 2px;
+    }
+    .field textarea { min-height: 180px; resize: vertical; line-height: 1.75; }
+    .field input:focus, .field textarea:focus {
+      outline: none; border-color: rgba(239, 230, 214, 0.45);
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .upload {
+      border: 1px dashed var(--line); padding: 1rem; text-align: center;
+      cursor: pointer; transition: border-color 0.2s;
+    }
+    .upload:hover, .upload.drag { border-color: rgba(239, 230, 214, 0.5); }
+    .upload p { font-size: 0.8rem; color: var(--fade); letter-spacing: 0.08em; }
+    .upload img {
+      display: none; width: 100%; max-height: 220px; object-fit: cover;
+      margin-top: 0.75rem; border: 1px solid var(--line);
+    }
+    .upload.has-img img { display: block; }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .btn {
+      border: 1px solid rgba(239, 230, 214, 0.35);
+      background: transparent; color: var(--paper);
+      padding: 0.65rem 1rem; font-family: inherit; font-size: 0.82rem;
+      letter-spacing: 0.16em; cursor: pointer;
+    }
+    .btn:hover { border-color: rgba(239, 230, 214, 0.75); }
+    .btn.primary { background: rgba(156, 47, 42, 0.35); border-color: rgba(156, 47, 42, 0.65); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .hint { font-size: 0.72rem; color: var(--fade); margin-top: 0.5rem; line-height: 1.5; letter-spacing: 0.06em; }
+    .hint.ok { color: #9fd4a8; }
+    .hint.err { color: #e8a8a8; }
+    .preview .meta { font-size: 0.72rem; letter-spacing: 0.24em; color: rgba(156, 47, 42, 0.85); margin-bottom: 0.5rem; }
+    .preview h3 {
+      font-family: "Ma Shan Zheng", cursive;
+      font-size: clamp(1.8rem, 6vw, 2.4rem); letter-spacing: 0.14em; margin-bottom: 0.25rem;
+    }
+    .preview .sub { color: var(--paper-soft); font-size: 0.85rem; letter-spacing: 0.1em; margin-bottom: 1rem; }
+    .preview .line { width: 2rem; height: 1px; background: var(--seal); margin-bottom: 1rem; }
+    .preview .prose { white-space: pre-wrap; letter-spacing: 0.04em; line-height: 1.9; font-size: 0.95rem; }
+    .preview .cover {
+      margin-top: 1rem; width: 100%; display: none;
+      border: 1px solid var(--line); object-fit: cover; max-height: 280px;
+    }
+    .preview .cover.visible { display: block; }
+    .modal {
+      position: fixed; inset: 0; z-index: 50; display: none;
+      align-items: center; justify-content: center; padding: 1rem;
+      background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(4px);
+    }
+    .modal.open { display: flex; }
+    .modal-card {
+      width: min(100%, 420px); border: 1px solid var(--line);
+      background: #14110e; padding: 1.25rem;
+    }
+    .modal-card h3 { font-size: 1rem; letter-spacing: 0.2em; margin-bottom: 0.75rem; }
+    .modal-card input {
+      width: 100%; background: rgba(0,0,0,.35); border: 1px solid var(--line);
+      color: var(--paper); padding: 0.6rem; font-size: 0.8rem; margin-bottom: 0.75rem;
+    }
+    .modal-card img { display: block; width: 160px; height: 160px; margin: 0 auto 0.75rem; background: #fff; padding: 6px; }
+    .share-tips { font-size: 0.75rem; color: var(--fade); line-height: 1.6; margin-bottom: 0.75rem; }
+    .share-tips strong { color: var(--paper-soft); font-weight: 500; }
+    @media (max-width: 760px) {
+      .layout { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a class="back" href="../index.html">← 返回合集</a>
+    <header class="hero">
+      <h1>写一封售后</h1>
+      <p>填文字、传配图，生成链接 · 可分享至微信 / 抖音 / 小红书</p>
+    </header>
+
+    <div class="layout">
+      <section class="panel editor">
+        <h2>编辑</h2>
+        <div class="row">
+          <div class="field">
+            <label for="script">剧本名</label>
+            <input id="script" type="text" placeholder="如：青白" maxlength="60" />
+          </div>
+          <div class="field">
+            <label for="me">我打的角色</label>
+            <input id="me" type="text" placeholder="如：苏无恙" maxlength="40" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="target">写给谁</label>
+          <input id="target" type="text" placeholder="如：阿喜" maxlength="40" />
+        </div>
+        <div class="field">
+          <label for="title">标题</label>
+          <input id="title" type="text" placeholder="留空则自动生成「致某某」" maxlength="120" />
+        </div>
+        <div class="field">
+          <label for="content">正文</label>
+          <textarea id="content" placeholder="在这里写下你想对 TA 说的话……&#10;&#10;段落之间空一行即可分段。"></textarea>
+        </div>
+        <div class="field">
+          <label>配图（可选）</label>
+          <div class="upload" id="uploadZone">
+            <p>点击或拖拽上传图片</p>
+            <img id="uploadPreview" alt="" />
+            <input id="fileInput" type="file" accept="image/*" hidden />
+          </div>
+          <p class="hint" id="imgHint">建议竖图或角色立绘，会自动压缩以适合分享。</p>
+        </div>
+        <div class="actions">
+          <button class="btn" type="button" id="btnPreview">刷新预览</button>
+          <button class="btn primary" type="button" id="btnShare">生成分享链接</button>
+        </div>
+        <p class="hint" id="statusHint"></p>
+      </section>
+
+      <section class="panel preview">
+        <h2>预览</h2>
+        <p class="meta" id="pvMeta">剧本 · 角色</p>
+        <h3 id="pvTitle">致……</h3>
+        <p class="sub" id="pvSub">我 → TA</p>
+        <div class="line" aria-hidden="true"></div>
+        <div class="prose" id="pvContent">在左侧输入正文后，这里会实时预览。</div>
+        <img class="cover" id="pvCover" alt="" />
+      </section>
+    </div>
+  </div>
+
+  <div class="modal" id="shareModal" aria-hidden="true">
+    <div class="modal-card">
+      <h3>分享链接已生成</h3>
+      <input id="shareUrl" readonly />
+      <img id="qrImg" alt="二维码" width="160" height="160" />
+      <div class="share-tips">
+        <strong>微信</strong>：复制链接发好友，或长按保存二维码扫码打开<br />
+        <strong>抖音 / 小红书</strong>：复制链接粘贴到简介或评论区；配图会作为链接预览卡片
+      </div>
+      <div class="actions">
+        <button class="btn primary" type="button" id="btnCopy">复制链接</button>
+        <button class="btn" type="button" id="btnNativeShare">系统分享</button>
+        <button class="btn" type="button" id="btnClose">关闭</button>
+      </div>
+      <p class="hint" id="modalHint"></p>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const els = {
+      script: $("script"), me: $("me"), target: $("target"), title: $("title"), content: $("content"),
+      uploadZone: $("uploadZone"), fileInput: $("fileInput"), uploadPreview: $("uploadPreview"),
+      imgHint: $("imgHint"), statusHint: $("statusHint"),
+      pvMeta: $("pvMeta"), pvTitle: $("pvTitle"), pvSub: $("pvSub"), pvContent: $("pvContent"), pvCover: $("pvCover"),
+      shareModal: $("shareModal"), shareUrl: $("shareUrl"), qrImg: $("qrImg"), modalHint: $("modalHint"),
+      btnPreview: $("btnPreview"), btnShare: $("btnShare"), btnCopy: $("btnCopy"), btnNativeShare: $("btnNativeShare"), btnClose: $("btnClose"),
+    };
+
+    let imageData = "";
+    let lastShareUrl = "";
+
+    function getTitle() {
+      const t = els.title.value.trim();
+      if (t) return t;
+      const target = els.target.value.trim();
+      return target ? `致${target}` : "剧本杀售后";
+    }
+
+    function updatePreview() {
+      const script = els.script.value.trim();
+      const me = els.me.value.trim();
+      const target = els.target.value.trim();
+      els.pvMeta.textContent = [script, me].filter(Boolean).join(" · ") || "剧本杀售后";
+      els.pvTitle.textContent = getTitle();
+      els.pvSub.textContent = me && target ? `${me} → ${target}` : (me || target || "");
+      els.pvContent.textContent = els.content.value.trim() || "（暂无文字）";
+      if (imageData) {
+        els.pvCover.src = imageData;
+        els.pvCover.classList.add("visible");
+      } else {
+        els.pvCover.classList.remove("visible");
+        els.pvCover.removeAttribute("src");
+      }
+    }
+
+    function compressImage(dataUrl, maxW = 1200, quality = 0.82) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          let w = img.width;
+          let h = img.height;
+          if (w > maxW) {
+            h = Math.round((h * maxW) / w);
+            w = maxW;
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          let out = canvas.toDataURL("image/jpeg", quality);
+          if (out.length > 450000 && quality > 0.45) {
+            resolve(compressImage(dataUrl, maxW, quality - 0.12));
+            return;
+          }
+          resolve(out);
+        };
+        img.onerror = () => reject(new Error("图片处理失败"));
+        img.src = dataUrl;
+      });
+    }
+
+    async function handleFile(file) {
+      if (!file || !file.type.startsWith("image/")) return;
+      els.imgHint.textContent = "正在压缩图片…";
+      els.imgHint.className = "hint";
+      try {
+        const reader = new FileReader();
+        const dataUrl = await new Promise((res, rej) => {
+          reader.onload = (e) => res(e.target.result);
+          reader.onerror = () => rej(new Error("读取失败"));
+          reader.readAsDataURL(file);
+        });
+        imageData = await compressImage(dataUrl);
+        els.uploadPreview.src = imageData;
+        els.uploadZone.classList.add("has-img");
+        els.imgHint.textContent = "✓ 图片已就绪";
+        els.imgHint.className = "hint ok";
+        updatePreview();
+      } catch (err) {
+        els.imgHint.textContent = err.message || "图片处理失败";
+        els.imgHint.className = "hint err";
+      }
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        els.shareUrl.select();
+        document.execCommand("copy");
+      }
+    }
+
+    function openShareModal(url) {
+      lastShareUrl = url;
+      els.shareUrl.value = url;
+      els.qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(url)}`;
+      els.shareModal.classList.add("open");
+      els.shareModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeShareModal() {
+      els.shareModal.classList.remove("open");
+      els.shareModal.setAttribute("aria-hidden", "true");
+    }
+
+    async function generateShareLink() {
+      const title = getTitle();
+      const content = els.content.value.trim();
+      if (!title && !content) {
+        els.statusHint.textContent = "请至少填写标题或正文";
+        els.statusHint.className = "hint err";
+        return;
+      }
+
+      els.btnShare.disabled = true;
+      els.statusHint.textContent = "正在生成链接…";
+      els.statusHint.className = "hint";
+
+      try {
+        const res = await fetch("/api/share", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title,
+            content,
+            script: els.script.value.trim(),
+            me: els.me.value.trim(),
+            target: els.target.value.trim(),
+            image: imageData,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "生成失败");
+
+        openShareModal(data.url);
+        await copyText(data.url);
+        els.statusHint.textContent = "✓ 链接已复制，可粘贴分享";
+        els.statusHint.className = "hint ok";
+        els.modalHint.textContent = "链接已复制到剪贴板";
+      } catch (err) {
+        els.statusHint.textContent = err.message || "生成失败，请稍后重试";
+        els.statusHint.className = "hint err";
+      } finally {
+        els.btnShare.disabled = false;
+      }
+    }
+
+    els.uploadZone.addEventListener("click", () => els.fileInput.click());
+    els.fileInput.addEventListener("change", (e) => handleFile(e.target.files[0]));
+    els.uploadZone.addEventListener("dragover", (e) => { e.preventDefault(); els.uploadZone.classList.add("drag"); });
+    els.uploadZone.addEventListener("dragleave", () => els.uploadZone.classList.remove("drag"));
+    els.uploadZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      els.uploadZone.classList.remove("drag");
+      handleFile(e.dataTransfer.files[0]);
+    });
+
+    ["input", "change"].forEach((evt) => {
+      [els.script, els.me, els.target, els.title, els.content].forEach((el) => {
+        el.addEventListener(evt, updatePreview);
+      });
+    });
+
+    els.btnPreview.addEventListener("click", updatePreview);
+    els.btnShare.addEventListener("click", generateShareLink);
+    els.btnCopy.addEventListener("click", async () => {
+      const url = lastShareUrl || els.shareUrl.value;
+      if (!url) return;
+      await copyText(url);
+      els.modalHint.textContent = "已复制";
+    });
+    els.btnNativeShare.addEventListener("click", async () => {
+      const url = lastShareUrl || els.shareUrl.value;
+      if (!url) return;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: getTitle(), url });
+          return;
+        } catch { /* cancelled */ }
+      }
+      await copyText(url);
+      els.modalHint.textContent = "已复制链接";
+    });
+    els.btnClose.addEventListener("click", closeShareModal);
+    els.shareModal.addEventListener("click", (e) => {
+      if (e.target === els.shareModal) closeShareModal();
+    });
+
+    updatePreview();
+  </script>
+</body>
+</html>
