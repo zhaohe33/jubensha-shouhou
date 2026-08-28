@@ -1,3 +1,5 @@
+import { normalizeTheme } from "../_lib/theme.js";
+
 const ID_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
 const MAX_BODY = 900_000;
 const MAX_IMAGES = 8;
@@ -75,6 +77,7 @@ export async function onRequestPost(context) {
     imgs,
     img: imgs[0] || "",
     p: isPublic ? 1 : 0,
+    th: normalizeTheme(body.theme),
     created: Date.now(),
   };
 

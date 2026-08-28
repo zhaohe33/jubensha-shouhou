@@ -7,7 +7,7 @@
   <meta name="description" content="上传文字与图片，生成可分享的剧本杀售后网页，适用于微信、抖音、小红书。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet" />
   <style>
     :root {
       --ink: #100e0c;
@@ -72,14 +72,14 @@
       display: block; font-size: 0.75rem; letter-spacing: 0.14em;
       color: var(--fade); margin-bottom: 0.35rem;
     }
-    .field input, .field textarea {
+    .field input, .field textarea, .field select {
       width: 100%; background: rgba(0, 0, 0, 0.35);
       border: 1px solid var(--line); color: var(--paper);
       padding: 0.65rem 0.75rem; font-family: inherit; font-size: 0.92rem;
       border-radius: 2px;
     }
     .field textarea { min-height: 180px; resize: vertical; line-height: 1.75; }
-    .field input:focus, .field textarea:focus {
+    .field input:focus, .field textarea:focus, .field select:focus {
       outline: none; border-color: rgba(239, 230, 214, 0.45);
     }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
@@ -135,6 +135,35 @@
     .public-toggle small {
       display: block; font-size: 0.72rem; color: var(--fade); line-height: 1.5; letter-spacing: 0.04em;
     }
+    .theme-presets {
+      display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 0.65rem;
+    }
+    .theme-preset {
+      border: 1px solid var(--line); background: transparent; color: var(--paper-soft);
+      padding: 0.4rem 0.7rem; font-family: inherit; font-size: 0.76rem;
+      letter-spacing: 0.12em; cursor: pointer;
+    }
+    .theme-preset.is-active {
+      border-color: rgba(156, 47, 42, 0.65); color: var(--paper);
+      background: rgba(156, 47, 42, 0.2);
+    }
+    .theme-colors label { font-size: 0.68rem; color: var(--fade); letter-spacing: 0.1em; margin-bottom: 0.25rem; display: block; }
+    .theme-colors input[type="color"] {
+      width: 100%; height: 34px; padding: 0; border: 1px solid var(--line);
+      background: transparent; cursor: pointer;
+    }
+    .preview-stage {
+      border: 1px solid var(--line);
+      padding: 1rem 0.9rem;
+      background: var(--pv-bg, var(--ink));
+      color: var(--pv-text, var(--paper));
+      transition: background 0.25s, color 0.25s;
+    }
+    .preview-stage .meta { color: var(--pv-accent, rgba(156, 47, 42, 0.85)); }
+    .preview-stage .sub { color: var(--pv-text-soft, var(--paper-soft)); }
+    .preview-stage .line { background: var(--pv-accent, var(--seal)); }
+    .preview-stage h3 { font-family: "Ma Shan Zheng", cursive; color: var(--pv-text, var(--paper)); }
+    .preview-stage .prose { font-family: var(--pv-font, "Noto Serif SC", serif); color: var(--pv-text, var(--paper)); }
     .preview .meta { font-size: 0.72rem; letter-spacing: 0.24em; color: rgba(156, 47, 42, 0.85); margin-bottom: 0.5rem; }
     .preview h3 {
       font-family: "Ma Shan Zheng", cursive;
@@ -230,6 +259,32 @@
           <textarea id="content" placeholder="在这里写下你想对 TA 说的话……&#10;&#10;段落之间空一行即可分段。"></textarea>
         </div>
         <div class="field">
+          <label>页面样式</label>
+          <div class="theme-presets" id="themePresets"></div>
+          <div class="row theme-colors">
+            <div>
+              <label for="bgColor">背景色</label>
+              <input id="bgColor" type="color" value="#100e0c" />
+            </div>
+            <div>
+              <label for="textColor">文字色</label>
+              <input id="textColor" type="color" value="#efe6d6" />
+            </div>
+            <div>
+              <label for="accentColor">点缀色</label>
+              <input id="accentColor" type="color" value="#9c2f2a" />
+            </div>
+          </div>
+          <div class="field" style="margin-top:0.65rem;margin-bottom:0">
+            <label for="fontSelect">正文字体</label>
+            <select id="fontSelect">
+              <option value="serif">宋体</option>
+              <option value="kai">楷体</option>
+              <option value="song">明朝</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
           <label>配图（可选，最多 8 张）</label>
           <div class="upload" id="uploadZone">
             <p>点击或拖拽上传，可多选</p>
@@ -256,6 +311,7 @@
 
       <section class="panel preview">
         <h2>预览</h2>
+        <div class="preview-stage" id="previewStage">
         <p class="meta" id="pvMeta">剧本 · 角色</p>
         <h3 id="pvTitle">致……</h3>
         <p class="sub" id="pvSub">我 → TA</p>
@@ -265,6 +321,7 @@
             <div class="prose" id="pvContent">在左侧输入正文后，这里会实时预览。</div>
           </div>
           <div class="preview-side" id="pvSide"></div>
+        </div>
         </div>
       </section>
     </div>
@@ -295,7 +352,10 @@
       uploadZone: $("uploadZone"), fileInput: $("fileInput"), imgGrid: $("imgGrid"),
       imgHint: $("imgHint"), statusHint: $("statusHint"),
       pvMeta: $("pvMeta"), pvTitle: $("pvTitle"), pvSub: $("pvSub"), pvContent: $("pvContent"),
-      pvSide: $("pvSide"), pvLayout: $("pvLayout"), isPublic: $("isPublic"),
+      pvSide: $("pvSide"), pvLayout: $("pvLayout"), previewStage: $("previewStage"),
+      isPublic: $("isPublic"),
+      themePresets: $("themePresets"), bgColor: $("bgColor"), textColor: $("textColor"),
+      accentColor: $("accentColor"), fontSelect: $("fontSelect"),
       shareModal: $("shareModal"), shareUrl: $("shareUrl"), qrImg: $("qrImg"), modalHint: $("modalHint"),
       btnPreview: $("btnPreview"), btnShare: $("btnShare"), btnCopy: $("btnCopy"), btnNativeShare: $("btnNativeShare"), btnClose: $("btnClose"),
     };
@@ -303,6 +363,67 @@
     const MAX_IMAGES = 8;
     let images = [];
     let lastShareUrl = "";
+    let activePreset = "ink";
+
+    const THEME_PRESETS = {
+      ink: { label: "墨信", bg: "#100e0c", text: "#efe6d6", textSoft: "#cfc3ae", accent: "#9c2f2a" },
+      paper: { label: "素笺", bg: "#f3ead8", text: "#2a221c", textSoft: "#5c5046", accent: "#8b3a34" },
+      night: { label: "夜雨", bg: "#0b1220", text: "#d9e4f5", textSoft: "#9eb0c9", accent: "#5b8def" },
+      rose: { label: "落樱", bg: "#1a1014", text: "#f5e3e8", textSoft: "#c9a3ad", accent: "#d45d79" },
+      bamboo: { label: "青松", bg: "#0f1612", text: "#e2efe6", textSoft: "#a8bfb0", accent: "#4f8a6b" },
+    };
+
+    const FONT_STACKS = {
+      serif: '"Noto Serif SC", "Songti SC", serif',
+      kai: '"ZCOOL XiaoWei", "KaiTi", serif',
+      song: '"Songti SC", "Noto Serif SC", serif',
+    };
+
+    function getThemePayload() {
+      const p = THEME_PRESETS[activePreset];
+      const usingPreset = p
+        && els.bgColor.value === p.bg
+        && els.textColor.value === p.text
+        && els.accentColor.value === p.accent;
+      return {
+        preset: activePreset,
+        bg: els.bgColor.value,
+        text: els.textColor.value,
+        textSoft: usingPreset ? p.textSoft : els.textColor.value,
+        accent: els.accentColor.value,
+        font: els.fontSelect.value,
+      };
+    }
+
+    function applyPreset(key) {
+      const p = THEME_PRESETS[key];
+      if (!p) return;
+      activePreset = key;
+      els.bgColor.value = p.bg;
+      els.textColor.value = p.text;
+      els.accentColor.value = p.accent;
+      renderPresetButtons();
+      applyThemeStyles();
+    }
+
+    function renderPresetButtons() {
+      els.themePresets.innerHTML = Object.entries(THEME_PRESETS).map(([key, p]) =>
+        `<button type="button" class="theme-preset${key === activePreset ? " is-active" : ""}" data-preset="${key}">${p.label}</button>`
+      ).join("");
+      els.themePresets.querySelectorAll(".theme-preset").forEach((btn) => {
+        btn.addEventListener("click", () => applyPreset(btn.dataset.preset));
+      });
+    }
+
+    function applyThemeStyles() {
+      const payload = getThemePayload();
+      const stage = els.previewStage;
+      stage.style.setProperty("--pv-bg", payload.bg);
+      stage.style.setProperty("--pv-text", payload.text);
+      stage.style.setProperty("--pv-text-soft", payload.textSoft);
+      stage.style.setProperty("--pv-accent", payload.accent);
+      stage.style.setProperty("--pv-font", FONT_STACKS[payload.font] || FONT_STACKS.serif);
+    }
 
     function getTitle() {
       const t = els.title.value.trim();
@@ -322,6 +443,7 @@
       els.pvSide.innerHTML = images.map((src) => `<img src="${src}" alt="" />`).join("");
       els.pvLayout.classList.toggle("no-images", images.length === 0);
       renderImageGrid();
+      applyThemeStyles();
     }
 
     function renderImageGrid() {
@@ -445,6 +567,7 @@
             target: els.target.value.trim(),
             images,
             public: els.isPublic.checked,
+            theme: getThemePayload(),
           }),
         });
         const data = await res.json();
@@ -480,7 +603,14 @@
       [els.script, els.me, els.target, els.title, els.content].forEach((el) => {
         el.addEventListener(evt, updatePreview);
       });
+      [els.bgColor, els.textColor, els.accentColor, els.fontSelect].forEach((el) => {
+        el.addEventListener(evt, () => { applyThemeStyles(); });
+      });
     });
+
+    renderPresetButtons();
+    applyPreset("ink");
+    updatePreview();
 
     els.btnPreview.addEventListener("click", updatePreview);
     els.btnShare.addEventListener("click", generateShareLink);
@@ -506,8 +636,6 @@
     els.shareModal.addEventListener("click", (e) => {
       if (e.target === els.shareModal) closeShareModal();
     });
-
-    updatePreview();
   </script>
 </body>
 </html>

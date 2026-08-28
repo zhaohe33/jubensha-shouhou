@@ -1,3 +1,5 @@
+import { normalizeTheme, themeCss, themeFontLink } from "../_lib/theme.js";
+
 function paragraphs(text) {
   return String(text || "")
     .replace(/\r\n/g, "\n")
@@ -74,6 +76,10 @@ ${sideImgs}
       </aside>\n`
     : "";
 
+  const theme = normalizeTheme(data.th);
+  const fontHref = themeFontLink(theme);
+  const themeStyles = themeCss(theme);
+
   const html = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -92,29 +98,25 @@ ${sideImgs}
   <meta name="twitter:image" content="${esc(ogImage)}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="${esc(fontHref)}" rel="stylesheet" />
   <style>
-    :root { --ink:#100e0c; --paper:#efe6d6; --paper-soft:#cfc3ae; --fade:rgba(239,230,214,.55); --seal:#9c2f2a; --line:rgba(239,230,214,.16); }
     * { box-sizing:border-box; margin:0; padding:0; }
-    body { font-family:"Noto Serif SC","Songti SC",serif; color:var(--paper); background:var(--ink); line-height:1.95; min-height:100vh; }
-    body::before { content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
-      background: radial-gradient(ellipse 80% 55% at 12% 8%, rgba(120,48,40,.18), transparent 55%),
-        linear-gradient(180deg,#0c0a09 0%,#14110e 50%,#0f0d0b 100%); }
+    body { line-height:1.95; min-height:100vh; }
+    body::before { content:""; position:fixed; inset:0; z-index:0; pointer-events:none; }
+    ${themeStyles}
     .wrap { position:relative; z-index:2; max-width:960px; margin:0 auto; padding:2.5rem 1.35rem 4rem; }
     .letter-layout { display:grid; grid-template-columns:minmax(0,1fr) min(300px,36%); gap:1.5rem; align-items:start; }
     .letter-main { min-width:0; }
     .letter-side { display:flex; flex-direction:column; gap:.75rem; position:sticky; top:1.25rem; }
     .letter-side img { width:100%; display:block; border:1px solid var(--line); object-fit:cover; }
-    .back { display:inline-flex; color:var(--fade); text-decoration:none; font-size:.82rem; letter-spacing:.22em; margin-bottom:2.2rem; }
-    .back:hover { color:var(--paper); }
-    .meta { font-size:.78rem; letter-spacing:.28em; color:rgba(156,47,42,.85); margin-bottom:.85rem; }
-    h1 { font-family:"Ma Shan Zheng",cursive; font-size:clamp(2.4rem,8vw,3.4rem); letter-spacing:.16em; line-height:1.15; margin-bottom:.4rem; }
+    .back { display:inline-flex; text-decoration:none; font-size:.82rem; letter-spacing:.22em; margin-bottom:2.2rem; }
+    .meta { font-size:.78rem; letter-spacing:.28em; margin-bottom:.85rem; }
+    h1 { font-size:clamp(2.4rem,8vw,3.4rem); letter-spacing:.16em; line-height:1.15; margin-bottom:.4rem; }
     .sub { color:var(--paper-soft); letter-spacing:.12em; font-size:.95rem; margin-bottom:2rem; }
-    .line { width:2.2rem; height:1px; background:var(--seal); margin:0 0 2rem; }
+    .line { width:2.2rem; height:1px; margin:0 0 2rem; }
     .prose p { margin-bottom:1.15rem; letter-spacing:.04em; }
     .cta { margin-top:2.5rem; padding-top:1.5rem; border-top:1px solid var(--line); }
-    .cta a { display:inline-block; margin-right:.75rem; margin-bottom:.5rem; padding:.65rem 1rem; border:1px solid rgba(239,230,214,.35); color:var(--paper); text-decoration:none; font-size:.82rem; letter-spacing:.18em; }
-    .cta a:hover { border-color:rgba(239,230,214,.7); }
+    .cta a { display:inline-block; margin-right:.75rem; margin-bottom:.5rem; padding:.65rem 1rem; text-decoration:none; font-size:.82rem; letter-spacing:.18em; }
     @media (max-width:760px) {
       .letter-layout { grid-template-columns:1fr; }
       .letter-side { position:static; flex-direction:row; overflow-x:auto; gap:.55rem; padding-bottom:.25rem; }
