@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>剧本杀售后</title>
-  <meta name="description" content="所有剧本杀售后，写在这里。" />
+  <meta name="description" content="浏览公开售后合集，或为玩家生成可分享的售后网页。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -15,7 +15,6 @@
       --paper-soft: #cfc3ae;
       --fade: rgba(239, 230, 214, 0.55);
       --seal: #9c2f2a;
-      --seal-soft: rgba(156, 47, 42, 0.55);
       --line: rgba(239, 230, 214, 0.16);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,7 +23,7 @@
       color: var(--paper);
       background: var(--ink);
       line-height: 1.55;
-      overflow-x: hidden;
+      min-height: 100vh;
     }
     body::before {
       content: "";
@@ -32,130 +31,98 @@
       background:
         radial-gradient(ellipse 80% 55% at 12% 8%, rgba(120, 48, 40, 0.22), transparent 55%),
         radial-gradient(ellipse 70% 50% at 88% 18%, rgba(70, 58, 40, 0.2), transparent 50%),
-        radial-gradient(ellipse 90% 55% at 50% 100%, rgba(40, 34, 28, 0.55), transparent 60%),
         linear-gradient(180deg, #0c0a09 0%, #14110e 45%, #0f0d0b 100%);
     }
-    body::after {
-      content: "";
-      position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.055;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    }
-    .page { position: relative; z-index: 2; }
-    .top {
-      text-align: center;
-      padding: 1.6rem 1rem 1rem;
-    }
+    .page { position: relative; z-index: 2; max-width: 920px; margin: 0 auto; padding: 1.6rem 1rem 3rem; }
+    .top { text-align: center; }
     .top-brand {
       font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(2.2rem, 8vw, 3.2rem);
+      font-size: clamp(2.4rem, 9vw, 3.6rem);
       letter-spacing: 0.2em; line-height: 1; margin-left: 0.2em;
     }
-    .top-line {
-      width: 1.8rem; height: 1px; margin: 0.75rem auto 0.65rem; background: var(--seal);
+    .top-line { width: 1.8rem; height: 1px; margin: 0.75rem auto 0.65rem; background: var(--seal); }
+    .top-lead { font-size: 0.88rem; letter-spacing: 0.18em; color: var(--paper-soft); }
+    
+    .site-nav {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 0.45rem;
+      margin-top: 1.1rem;
     }
-    .top-lead {
-      font-size: 0.85rem; letter-spacing: 0.2em; color: var(--paper-soft);
-    }
-    .top-count {
-      margin-top: 0.35rem; font-size: 0.72rem; letter-spacing: 0.24em; color: var(--fade);
-    }
-    .top-cta {
-      margin-top: 1rem;
-    }
-    .top-cta a {
+    .site-nav__link {
       display: inline-block;
-      padding: 0.55rem 1.1rem;
-      border: 1px solid rgba(239, 230, 214, 0.35);
-      color: var(--paper);
+      padding: 0.45rem 0.95rem;
+      border: 1px solid rgba(239, 230, 214, 0.22);
+      color: var(--fade);
       text-decoration: none;
-      font-size: 0.78rem;
-      letter-spacing: 0.2em;
-      transition: border-color .25s, background .25s;
+      font-size: 0.76rem;
+      letter-spacing: 0.18em;
+      transition: border-color .25s, color .25s, background .25s;
     }
-    .top-cta a:hover {
-      border-color: rgba(239, 230, 214, 0.7);
-      background: rgba(156, 47, 42, 0.2);
+    .site-nav__link:hover {
+      color: var(--paper);
+      border-color: rgba(239, 230, 214, 0.5);
     }
-    .collection {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0.2rem 1rem 3rem;
+    .site-nav__link.is-active {
+      color: var(--paper);
+      border-color: rgba(156, 47, 42, 0.65);
+      background: rgba(156, 47, 42, 0.22);
     }
-    .entries {
+
+    .features {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.75rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-top: 2rem;
     }
-    .entry {
-      position: relative;
+    .feature {
       display: flex;
       flex-direction: column;
       text-decoration: none;
       color: inherit;
-      overflow: hidden;
       border: 1px solid var(--line);
       background: rgba(28, 24, 20, 0.55);
-      transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+      padding: 1.35rem 1.1rem 1.2rem;
+      min-height: 220px;
+      transition: border-color .25s, transform .25s, background .25s;
     }
-    .entry:hover {
-      border-color: rgba(239, 230, 214, 0.4);
-      background: rgba(36, 30, 24, 0.78);
+    .feature:hover {
+      border-color: rgba(239, 230, 214, 0.35);
+      background: rgba(36, 30, 26, 0.72);
       transform: translateY(-2px);
     }
-    .entry-visual {
-      position: relative;
-      aspect-ratio: 16 / 10;
-      overflow: hidden;
-      background: #1a1612;
+    .feature-tag {
+      font-size: 0.68rem;
+      letter-spacing: 0.24em;
+      color: rgba(156, 47, 42, 0.9);
+      margin-bottom: 0.65rem;
     }
-    .entry-visual img {
-      width: 100%; height: 100%; object-fit: cover; display: block;
-      transition: transform 0.8s ease; filter: saturate(0.88) contrast(1.04);
-    }
-    .entry:hover .entry-visual img { transform: scale(1.06); }
-    .entry-visual--plain {
-      display: grid; place-items: center;
-      font-family: "Ma Shan Zheng", cursive; font-size: 1.8rem; color: rgba(239,230,214,.28);
-      letter-spacing: 0.18em;
-    }
-    .entry-body {
-      display: flex; flex-direction: column; gap: 0.2rem;
-      padding: 0.7rem 0.75rem 0.85rem;
-    }
-    .entry-script {
-      font-size: 0.68rem; letter-spacing: 0.12em; color: var(--seal);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .entry-name {
+    .feature h2 {
       font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(1.25rem, 2.4vw, 1.55rem);
-      letter-spacing: 0.1em; margin-left: 0.06em; line-height: 1.2;
+      font-size: clamp(1.6rem, 5vw, 2rem);
+      letter-spacing: 0.14em;
+      margin-bottom: 0.55rem;
+      margin-left: 0.08em;
     }
-    .entry-blurb {
-      color: var(--paper-soft); font-size: 0.78rem; letter-spacing: 0.02em;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-      overflow: hidden;
+    .feature p {
+      color: var(--paper-soft);
+      font-size: 0.86rem;
+      letter-spacing: 0.06em;
+      line-height: 1.7;
+      flex: 1;
     }
-    .entry-seal {
-      position: absolute; top: 0.55rem; right: 0.55rem; width: 1.9rem; height: 1.9rem;
-      border: 1px solid var(--seal-soft); color: var(--seal);
-      display: grid; place-items: center; font-family: "Ma Shan Zheng", cursive;
-      font-size: 0.78rem; transform: rotate(12deg); opacity: 0.75; pointer-events: none;
-      background: rgba(16,14,12,.35);
+    .feature-cta {
+      margin-top: 1rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      color: var(--fade);
     }
+    .feature:hover .feature-cta { color: var(--paper); }
     footer {
-      text-align: center; padding: 0 1rem 2rem;
+      text-align: center; margin-top: 2rem;
       color: rgba(239, 230, 214, 0.35); font-size: 0.72rem; letter-spacing: 0.2em;
     }
-    @media (max-width: 900px) {
-      .entries { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
-    }
-    @media (max-width: 520px) {
-      .entries { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
-      .entry-body { padding: 0.55rem 0.55rem 0.7rem; }
-      .entry-blurb { -webkit-line-clamp: 1; }
-      .top { padding: 1.2rem 0.8rem 0.7rem; }
-      .collection { padding: 0.1rem 0.7rem 2.2rem; }
+    @media (max-width: 640px) {
+      .features { grid-template-columns: 1fr; }
+      .feature { min-height: 0; }
     }
   </style>
 </head>
@@ -165,134 +132,30 @@
       <h1 class="top-brand">售后</h1>
       <div class="top-line" aria-hidden="true"></div>
       <p class="top-lead">局终之后，信仍未完</p>
-      <p class="top-count">全部售后 · 13 封</p>
-      <p class="top-cta"><a href="create/">写一封自己的售后 →</a></p>
+      
+    <nav class="site-nav" aria-label="站点导航">
+      <a class="site-nav__link is-active" href="index.html">首页</a>
+      <a class="site-nav__link" href="browse/">公开售后</a>
+      <a class="site-nav__link" href="create/">创作售后</a>
+    </nav>
     </header>
 
-    <main class="collection" id="collection">
-      <div class="entries">
-        
-        <a class="entry" href="pages/如故/李文瑙/卫子谣/index.html">
-          <div class="entry-visual"><img src="media/duos/ruguy-liwennao-weiziyao.jpg" alt="" loading="lazy" /></div>
-          <div class="entry-body">
-            <p class="entry-script">如故 · 李文瑙</p>
-            <h3 class="entry-name">致卫子谣</h3>
-            <p class="entry-blurb">自那场生死棋局一别，便再无音讯，你近来可好？轮回将至，有…</p>
-          </div>
-          <div class="entry-seal" aria-hidden="true">如故</div>
-        </a>
-        <a class="entry" href="pages/如故/李文瑙/连世疆/index.html">
-          <div class="entry-visual"><img src="media/duos/ruguy-liwennao-lianshijiang.jpg" alt="" loading="lazy" /></div>
-          <div class="entry-body">
-            <p class="entry-script">如故 · 李文瑙</p>
-            <h3 class="entry-name">致连世疆</h3>
-            <p class="entry-blurb">哥哥，算了——我还是更喜欢叫你弟弟。</p>
-          </div>
-          <div class="entry-seal" aria-hidden="true">如故</div>
-        </a>
-        <a class="entry" href="pages/暗夜降至/车允智/金在秀/index.html">
-          <div class="entry-visual"><img src="media/duos/anye-cheyunzhi-jinzaixiu.jpg" alt="" loading="lazy" /></div>
-          <div class="entry-body">
-            <p class="entry-script">暗夜降至 · 车允智</p>
-            <h3 class="entry-name">致金在秀</h3>
-            <p class="entry-blurb">视频售后</p>
-          </div>
-          <div class="entry-seal" aria-hidden="true">暗夜</div>
-        </a>
-        <a class="entry" href="pages/洗劫伦敦所有的玫瑰/阿尔芒/斯黛拉/index.html">
-          <div class="entry-visual"><img src="media/duos/lundun-aermang-sidaila.jpg" alt="" loading="lazy" /></div>
-          <div class="entry-body">
-            <p class="entry-script">洗劫伦敦所有的玫瑰 · 阿尔芒</p>
-            <h3 class="entry-name">致斯黛拉</h3>
-            <p class="entry-blurb">斯黛拉，见字如面。</p>
-          </div>
-          <div class="entry-seal" aria-hidden="true">洗劫</div>
-        </a>
-        <a class="entry" href="pages/洗劫罗马所有的情书/维托/黛琳/index.html">
-          <div class="entry-visual"><img src="media/duos/luoma-weituo-dailin.jpg" alt="" loading="lazy" /></div>
-          <div class="entry-body">
-            <p class="entry-script">洗劫罗马所有的情书 · 维托</p>
-            <h3 class="entry-name">致黛琳</h3>
-            <p class="entry-blurb">亲爱的黛琳</p>
-          </div>
-          <div class="entry-seal" aria-hidden="true">洗劫</div>
-        </a>
-        <a class="entry" href="pages/流氓叙事/程聿怀/黛利拉/index.html">
-          <div class="entry-visual"><img src="media/duos/liumang-chengyuhuai-dailila.jpg" alt="" loading="lazy" /></div>
-          <div class="entry-body">
-            <p class="entry-script">流氓叙事 · 程聿怀</p>
-            <h3 class="entry-name">致黛利拉</h3>
-            <p class="entry-blurb">没想到吧，你竟会收到我的来信。</p>
-          </div>
-          <div class="entry-seal" aria-hidden="true">流氓</div>
-        </a>
-        <a class="entry" href="pages/流氓叙事/程聿怀/程走柳/index.html">
-          <div class="entry-visual"><img src="media/duos/liumang-chengyuhuai-chengzouliu.jpg" alt="" loading="lazy" /></div>
-          <div class="entry-body">
-            <p class="entry-script">流氓叙事 · 程聿怀</p>
-            <h3 class="entry-name">致程走柳</h3>
-            <p class="entry-blurb">程走柳，我的同怀</p>
-          </div>
-          <div class="entry-seal" aria-hidden="true">流氓</div>
-        </a>
-        <a class="entry" href="pages/流氓叙事/蒋伯驾/程走柳/index.html">
-          <div class="entry-visual"><img src="media/duos/liumang-jiangbojia-chengzouliu.jpg" alt="" loading="lazy" /></div>
-          <div class="entry-body">
-            <p class="entry-script">流氓叙事 · 蒋伯驾</p>
-            <h3 class="entry-name">致程走柳</h3>
-            <p class="entry-blurb">在蒋伯驾去世后的几个月里，程走柳始终沉浸在悲伤之中，迟迟…</p>
-          </div>
-          <div class="entry-seal" aria-hidden="true">流氓</div>
-        </a>
-        <a class="entry" href="pages/流氓叙事/蒋伯驾/缪宏谟/index.html">
-          <div class="entry-visual"><img src="media/duos/liumang-jiangbojia-miaohongmo.jpg" alt="" loading="lazy" /></div>
-          <div class="entry-body">
-            <p class="entry-script">流氓叙事 · 蒋伯驾</p>
-            <h3 class="entry-name">致缪宏谟</h3>
-            <p class="entry-blurb">蒋伯驾离世没过多久，缪宏谟便收到了一封匿名寄出的角膜捐献…</p>
-          </div>
-          <div class="entry-seal" aria-hidden="true">流氓</div>
-        </a>
-        <a class="entry" href="pages/空山/李逸/花想容/index.html">
-          <div class="entry-visual"><img src="media/duos/kongshan-liyi-huaxiangrong.jpg" alt="" loading="lazy" /></div>
-          <div class="entry-body">
-            <p class="entry-script">空山 · 李逸</p>
-            <h3 class="entry-name">致花想容</h3>
-            <p class="entry-blurb">视频售后</p>
-          </div>
-          <div class="entry-seal" aria-hidden="true">空山</div>
-        </a>
-        <a class="entry" href="pages/空山/李逸/阿绿姑娘/index.html">
-          <div class="entry-visual"><img src="media/duos/kongshan-liyi-aluniang.jpg" alt="" loading="lazy" /></div>
-          <div class="entry-body">
-            <p class="entry-script">空山 · 李逸</p>
-            <h3 class="entry-name">致阿绿姑娘</h3>
-            <p class="entry-blurb">视频售后</p>
-          </div>
-          <div class="entry-seal" aria-hidden="true">空山</div>
-        </a>
-        <a class="entry" href="pages/贪欢/林江/武宁/index.html">
-          <div class="entry-visual"><img src="media/duos/tanhuan-linjiang-wuning.jpg" alt="" loading="lazy" /></div>
-          <div class="entry-body">
-            <p class="entry-script">贪欢 · 林江</p>
-            <h3 class="entry-name">致武宁</h3>
-            <p class="entry-blurb">图文售后</p>
-          </div>
-          <div class="entry-seal" aria-hidden="true">贪欢</div>
-        </a>
-        <a class="entry" href="pages/青白/苏无恙/阿喜/index.html">
-          <div class="entry-visual"><img src="media/duos/qingbai-suwuyang-axi.jpg" alt="" loading="lazy" /></div>
-          <div class="entry-body">
-            <p class="entry-script">青白 · 苏无恙</p>
-            <h3 class="entry-name">致阿喜</h3>
-            <p class="entry-blurb">胆小鬼，欢迎回到现实世界。</p>
-          </div>
-          <div class="entry-seal" aria-hidden="true">青白</div>
-        </a>
-      </div>
+    <main class="features">
+      <a class="feature" href="browse/">
+        <p class="feature-tag">功能一</p>
+        <h2>公开售后</h2>
+        <p>浏览目前已公开的 13 封售后信。按剧本与角色整理，点击进入沉浸式阅读。</p>
+        <span class="feature-cta">进入合集 →</span>
+      </a>
+      <a class="feature" href="create/">
+        <p class="feature-tag">功能二</p>
+        <h2>创作售后</h2>
+        <p>上传文字与配图，一键生成你的售后网页，并分享至微信、抖音、小红书。</p>
+        <span class="feature-cta">开始创作 →</span>
+      </a>
     </main>
 
-    <footer>剧本杀售后合集</footer>
+    <footer>剧本杀售后</footer>
   </div>
 </body>
 </html>

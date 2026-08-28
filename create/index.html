@@ -34,18 +34,28 @@
         linear-gradient(180deg, #0c0a09 0%, #14110e 50%, #0f0d0b 100%);
     }
     .page { position: relative; z-index: 2; max-width: 920px; margin: 0 auto; padding: 1.2rem 1rem 3rem; }
-    .back {
-      display: inline-block; color: var(--fade); text-decoration: none;
-      font-size: 0.82rem; letter-spacing: 0.22em; margin-bottom: 1.2rem;
-    }
-    .back:hover { color: var(--paper); }
-    .hero { text-align: center; margin-bottom: 1.5rem; }
-    .hero h1 {
+    .top { text-align: center; margin-bottom: 1.2rem; }
+    .top-brand {
       font-family: "Ma Shan Zheng", cursive;
       font-size: clamp(2rem, 8vw, 2.8rem);
       letter-spacing: 0.18em; margin-left: 0.18em;
     }
-    .hero p { color: var(--paper-soft); font-size: 0.88rem; letter-spacing: 0.12em; margin-top: 0.5rem; }
+    .top-line { width: 1.8rem; height: 1px; margin: 0.65rem auto 0.5rem; background: var(--seal); }
+    .top-lead { color: var(--paper-soft); font-size: 0.86rem; letter-spacing: 0.14em; }
+    .site-nav {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 0.45rem;
+      margin-top: 0.9rem;
+    }
+    .site-nav__link {
+      display: inline-block; padding: 0.45rem 0.95rem;
+      border: 1px solid rgba(239, 230, 214, 0.22); color: var(--fade);
+      text-decoration: none; font-size: 0.76rem; letter-spacing: 0.18em;
+    }
+    .site-nav__link:hover { color: var(--paper); border-color: rgba(239, 230, 214, 0.5); }
+    .site-nav__link.is-active {
+      color: var(--paper); border-color: rgba(156, 47, 42, 0.65);
+      background: rgba(156, 47, 42, 0.22);
+    }
     .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
     .panel {
       border: 1px solid var(--line);
@@ -136,10 +146,15 @@
 </head>
 <body>
   <div class="page">
-    <a class="back" href="../index.html">← 返回合集</a>
-    <header class="hero">
-      <h1>写一封售后</h1>
-      <p>填文字、传配图，生成链接 · 可分享至微信 / 抖音 / 小红书</p>
+    <header class="top">
+      <h1 class="top-brand">创作售后</h1>
+      <div class="top-line" aria-hidden="true"></div>
+      <p class="top-lead">上传文字与配图，生成可分享链接</p>
+      <nav class="site-nav" aria-label="站点导航">
+        <a class="site-nav__link" href="../index.html">首页</a>
+        <a class="site-nav__link" href="../browse/">公开售后</a>
+        <a class="site-nav__link is-active" href="./">创作售后</a>
+      </nav>
     </header>
 
     <div class="layout">

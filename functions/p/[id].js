@@ -97,7 +97,7 @@ export async function onRequestGet(context) {
 </head>
 <body>
   <div class="wrap">
-    <a class="back" href="/">← 返回合集</a>
+    <a class="back" href="/">← 返回首页</a>
     ${meta ? `<p class="meta">${esc(meta)}</p>` : ""}
     <h1>${esc(title)}</h1>
     ${me && target ? `<p class="sub">${esc(me)} → ${esc(target)}</p>` : ""}
@@ -106,8 +106,8 @@ export async function onRequestGet(context) {
 ${paragraphs(data.c) || "        <p class=\"empty\">（暂无文字）</p>"}
     </article>
 ${imgBlock}    <div class="cta">
+      <a href="/browse/">浏览公开售后</a>
       <a href="/create/">我也要写一封</a>
-      <a href="/">浏览全部售后</a>
     </div>
   </div>
 </body>

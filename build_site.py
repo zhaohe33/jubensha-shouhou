@@ -10,7 +10,7 @@ import urllib.parse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-SKIP_DIRS = {".git", ".git.bak-hub", "__pycache__", "pages", "media", "scripts", ".github", "functions", "create", "dist", ".wrangler"}
+SKIP_DIRS = {".git", ".git.bak-hub", "__pycache__", "pages", "media", "scripts", ".github", "functions", "create", "browse", "dist", ".wrangler"}
 # GitHub Pages is often slow/blocked in CN; serve media via jsDelivr
 CDN_BASE = "https://cdn.jsdelivr.net/gh/zhaohe33/jubensha-shouhou@main/"
 PAGES_BASE = "https://zhaohe33.github.io/jubensha-shouhou/"
@@ -442,7 +442,7 @@ def write_rich_page(entry: dict) -> None:
             )
 
     back = (
-        f'<a href="{prefix}index.html" style="position:fixed;top:1rem;left:1rem;z-index:50;'
+        f'<a href="{prefix}browse/" style="position:fixed;top:1rem;left:1rem;z-index:50;'
         f'color:rgba(239,230,214,.7);text-decoration:none;font-size:.82rem;letter-spacing:.22em;'
         f'font-family:Noto Serif SC,Songti SC,serif;padding:.45rem .75rem;'
         f'border:1px solid rgba(239,230,214,.18);background:rgba(16,14,12,.55);'
@@ -548,7 +548,7 @@ def write_letter_page(entry: dict) -> None:
 </head>
 <body>
   <div class="wrap">
-    <a class="back" href="{prefix}index.html">← 返回合集</a>
+    <a class="back" href="{prefix}browse/">← 返回合集</a>
     <p class="meta">剧本 · {html.escape(entry['script'])}　/　我方 · {html.escape(entry['me'])}</p>
     <h1>{html.escape(entry['title'])}</h1>
     <p class="sub">{html.escape(entry['me'])} → {html.escape(entry['target'])}</p>
@@ -564,11 +564,191 @@ def write_letter_page(entry: dict) -> None:
     out.write_text(page, encoding="utf-8")
 
 
+def site_nav(active: str, depth: str = "") -> str:
+    """Shared top nav: active is 'home' | 'browse' | 'create'."""
+    home = f"{depth}index.html"
+    browse = f"{depth}browse/"
+    create = f"{depth}create/"
+    def cls(name: str) -> str:
+        return "site-nav__link is-active" if active == name else "site-nav__link"
+    return f"""
+    <nav class="site-nav" aria-label="站点导航">
+      <a class="{cls('home')}" href="{home}">首页</a>
+      <a class="{cls('browse')}" href="{browse}">公开售后</a>
+      <a class="{cls('create')}" href="{create}">创作售后</a>
+    </nav>"""
+
+
+SITE_BASE_CSS = """
+    .site-nav {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 0.45rem;
+      margin-top: 1.1rem;
+    }
+    .site-nav__link {
+      display: inline-block;
+      padding: 0.45rem 0.95rem;
+      border: 1px solid rgba(239, 230, 214, 0.22);
+      color: var(--fade);
+      text-decoration: none;
+      font-size: 0.76rem;
+      letter-spacing: 0.18em;
+      transition: border-color .25s, color .25s, background .25s;
+    }
+    .site-nav__link:hover {
+      color: var(--paper);
+      border-color: rgba(239, 230, 214, 0.5);
+    }
+    .site-nav__link.is-active {
+      color: var(--paper);
+      border-color: rgba(156, 47, 42, 0.65);
+      background: rgba(156, 47, 42, 0.22);
+    }
+"""
+
+
+def render_portal(entry_count: int) -> str:
+    return f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>剧本杀售后</title>
+  <meta name="description" content="浏览公开售后合集，或为玩家生成可分享的售后网页。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {{
+      --ink: #100e0c;
+      --paper: #efe6d6;
+      --paper-soft: #cfc3ae;
+      --fade: rgba(239, 230, 214, 0.55);
+      --seal: #9c2f2a;
+      --line: rgba(239, 230, 214, 0.16);
+    }}
+    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+    body {{
+      font-family: "Noto Serif SC", "Songti SC", serif;
+      color: var(--paper);
+      background: var(--ink);
+      line-height: 1.55;
+      min-height: 100vh;
+    }}
+    body::before {{
+      content: "";
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 55% at 12% 8%, rgba(120, 48, 40, 0.22), transparent 55%),
+        radial-gradient(ellipse 70% 50% at 88% 18%, rgba(70, 58, 40, 0.2), transparent 50%),
+        linear-gradient(180deg, #0c0a09 0%, #14110e 45%, #0f0d0b 100%);
+    }}
+    .page {{ position: relative; z-index: 2; max-width: 920px; margin: 0 auto; padding: 1.6rem 1rem 3rem; }}
+    .top {{ text-align: center; }}
+    .top-brand {{
+      font-family: "Ma Shan Zheng", cursive;
+      font-size: clamp(2.4rem, 9vw, 3.6rem);
+      letter-spacing: 0.2em; line-height: 1; margin-left: 0.2em;
+    }}
+    .top-line {{ width: 1.8rem; height: 1px; margin: 0.75rem auto 0.65rem; background: var(--seal); }}
+    .top-lead {{ font-size: 0.88rem; letter-spacing: 0.18em; color: var(--paper-soft); }}
+    {SITE_BASE_CSS}
+    .features {{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.85rem;
+      margin-top: 2rem;
+    }}
+    .feature {{
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid var(--line);
+      background: rgba(28, 24, 20, 0.55);
+      padding: 1.35rem 1.1rem 1.2rem;
+      min-height: 220px;
+      transition: border-color .25s, transform .25s, background .25s;
+    }}
+    .feature:hover {{
+      border-color: rgba(239, 230, 214, 0.35);
+      background: rgba(36, 30, 26, 0.72);
+      transform: translateY(-2px);
+    }}
+    .feature-tag {{
+      font-size: 0.68rem;
+      letter-spacing: 0.24em;
+      color: rgba(156, 47, 42, 0.9);
+      margin-bottom: 0.65rem;
+    }}
+    .feature h2 {{
+      font-family: "Ma Shan Zheng", cursive;
+      font-size: clamp(1.6rem, 5vw, 2rem);
+      letter-spacing: 0.14em;
+      margin-bottom: 0.55rem;
+      margin-left: 0.08em;
+    }}
+    .feature p {{
+      color: var(--paper-soft);
+      font-size: 0.86rem;
+      letter-spacing: 0.06em;
+      line-height: 1.7;
+      flex: 1;
+    }}
+    .feature-cta {{
+      margin-top: 1rem;
+      font-size: 0.78rem;
+      letter-spacing: 0.2em;
+      color: var(--fade);
+    }}
+    .feature:hover .feature-cta {{ color: var(--paper); }}
+    footer {{
+      text-align: center; margin-top: 2rem;
+      color: rgba(239, 230, 214, 0.35); font-size: 0.72rem; letter-spacing: 0.2em;
+    }}
+    @media (max-width: 640px) {{
+      .features {{ grid-template-columns: 1fr; }}
+      .feature {{ min-height: 0; }}
+    }}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <h1 class="top-brand">售后</h1>
+      <div class="top-line" aria-hidden="true"></div>
+      <p class="top-lead">局终之后，信仍未完</p>
+      {site_nav("home")}
+    </header>
+
+    <main class="features">
+      <a class="feature" href="browse/">
+        <p class="feature-tag">功能一</p>
+        <h2>公开售后</h2>
+        <p>浏览目前已公开的 {entry_count} 封售后信。按剧本与角色整理，点击进入沉浸式阅读。</p>
+        <span class="feature-cta">进入合集 →</span>
+      </a>
+      <a class="feature" href="create/">
+        <p class="feature-tag">功能二</p>
+        <h2>创作售后</h2>
+        <p>上传文字与配图，一键生成你的售后网页，并分享至微信、抖音、小红书。</p>
+        <span class="feature-cta">开始创作 →</span>
+      </a>
+    </main>
+
+    <footer>剧本杀售后</footer>
+  </div>
+</body>
+</html>
+"""
+
+
 def render_hub(entries: list[dict]) -> str:
     cards = []
     for e in entries:
-        href = html.escape(href_for(e), quote=True)
+        href = "../" + html.escape(href_for(e), quote=True)
         cover = e["cover"]
+        if cover and not str(cover).startswith("http"):
+            cover = "../" + str(cover).lstrip("/")
         visual = (
             f'<div class="entry-visual"><img src="{html.escape(cover)}" alt="" loading="lazy" /></div>'
             if cover
@@ -594,8 +774,8 @@ def render_hub(entries: list[dict]) -> str:
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>剧本杀售后</title>
-  <meta name="description" content="所有剧本杀售后，写在这里。" />
+  <title>公开售后 · 剧本杀售后</title>
+  <meta name="description" content="浏览目前已公开的剧本杀售后信合集。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -650,23 +830,7 @@ def render_hub(entries: list[dict]) -> str:
     .top-count {{
       margin-top: 0.35rem; font-size: 0.72rem; letter-spacing: 0.24em; color: var(--fade);
     }}
-    .top-cta {{
-      margin-top: 1rem;
-    }}
-    .top-cta a {{
-      display: inline-block;
-      padding: 0.55rem 1.1rem;
-      border: 1px solid rgba(239, 230, 214, 0.35);
-      color: var(--paper);
-      text-decoration: none;
-      font-size: 0.78rem;
-      letter-spacing: 0.2em;
-      transition: border-color .25s, background .25s;
-    }}
-    .top-cta a:hover {{
-      border-color: rgba(239, 230, 214, 0.7);
-      background: rgba(156, 47, 42, 0.2);
-    }}
+    {SITE_BASE_CSS}
     .collection {{
       max-width: 1100px;
       margin: 0 auto;
@@ -755,9 +919,9 @@ def render_hub(entries: list[dict]) -> str:
     <header class="top">
       <h1 class="top-brand">售后</h1>
       <div class="top-line" aria-hidden="true"></div>
-      <p class="top-lead">局终之后，信仍未完</p>
-      <p class="top-count">全部售后 · {len(entries)} 封</p>
-      <p class="top-cta"><a href="create/">写一封自己的售后 →</a></p>
+      <p class="top-lead">公开售后合集</p>
+      <p class="top-count">共 {len(entries)} 封</p>
+      {site_nav("browse", "../")}
     </header>
 
     <main class="collection" id="collection">
@@ -791,7 +955,12 @@ def main() -> None:
         write_letter_page(e)
 
     hub = render_hub(entries)
-    (ROOT / "index.html").write_text(hub, encoding="utf-8")
+    browse_dir = ROOT / "browse"
+    browse_dir.mkdir(exist_ok=True)
+    (browse_dir / "index.html").write_text(hub, encoding="utf-8")
+
+    portal = render_portal(len(entries))
+    (ROOT / "index.html").write_text(portal, encoding="utf-8")
 
     slim = [
         {
