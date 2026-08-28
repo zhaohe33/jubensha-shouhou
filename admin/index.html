@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>售后后台 · 剧本杀售后</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --line: #2a3040;
+      --text: #e8ecf4;
+      --muted: #9aa3b5;
+      --accent: #c45c5c;
+      --ok: #6fbf8a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 1.25rem 1rem 2.5rem; }
+    h1 { font-size: 1.35rem; font-weight: 600; letter-spacing: 0.04em; }
+    .sub { color: var(--muted); font-size: 0.85rem; margin-top: 0.35rem; }
+    .login {
+      max-width: 420px; margin: 4rem auto; padding: 1.5rem;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    }
+    .login h2 { font-size: 1rem; margin-bottom: 1rem; }
+    input, select, button, textarea {
+      font: inherit; color: var(--text);
+    }
+    input[type="password"], input[type="search"], select {
+      width: 100%; padding: 0.65rem 0.75rem;
+      background: #0c0e13; border: 1px solid var(--line); border-radius: 6px;
+    }
+    input:focus, select:focus { outline: none; border-color: #4b5d80; }
+    .btn {
+      border: 1px solid var(--line); background: #222733; color: var(--text);
+      padding: 0.55rem 0.9rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+    }
+    .btn:hover { border-color: #4b5d80; }
+    .btn.primary { background: #3a2228; border-color: #7a3a42; }
+    .btn.danger { background: #3a1f1f; border-color: #7a3333; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+      margin: 1rem 0 0.75rem;
+    }
+    .toolbar .spacer { flex: 1; }
+    .stats {
+      display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.6rem;
+      margin-top: 1rem;
+    }
+    .stat {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+      padding: 0.85rem 0.9rem;
+    }
+    .stat b { display: block; font-size: 1.35rem; margin-bottom: 0.15rem; }
+    .stat span { color: var(--muted); font-size: 0.78rem; }
+    .table-wrap {
+      margin-top: 0.75rem; border: 1px solid var(--line); border-radius: 8px;
+      overflow: auto; background: var(--panel);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th, td { padding: 0.65rem 0.7rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-weight: 500; white-space: nowrap; background: #12151c; position: sticky; top: 0; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .tag {
+      display: inline-block; padding: 0.15rem 0.45rem; border-radius: 999px;
+      font-size: 0.72rem; border: 1px solid var(--line);
+    }
+    .tag.pub { color: var(--ok); border-color: rgba(111,191,138,0.35); }
+    .tag.priv { color: var(--muted); }
+    a.link { color: #8eb4ff; text-decoration: none; }
+    a.link:hover { text-decoration: underline; }
+    .hidden { display: none !important; }
+    .err { color: #f0a0a0; font-size: 0.85rem; margin-top: 0.5rem; }
+    .modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+      display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 20;
+    }
+    .modal.open { display: flex; }
+    .modal-card {
+      width: min(100%, 720px); max-height: 90vh; overflow: auto;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 1rem;
+    }
+    .modal-card h3 { margin-bottom: 0.75rem; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1rem; font-size: 0.85rem; margin-bottom: 0.75rem; }
+    .detail-grid dt { color: var(--muted); }
+    .content-box {
+      white-space: pre-wrap; background: #0c0e13; border: 1px solid var(--line);
+      border-radius: 6px; padding: 0.75rem; font-size: 0.88rem; max-height: 240px; overflow: auto;
+    }
+    .thumb-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .thumb-row img { width: 88px; height: 110px; object-fit: cover; border: 1px solid var(--line); border-radius: 4px; }
+    @media (max-width: 900px) {
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section id="loginView" class="login">
+      <h2>售后后台登录</h2>
+      <p class="sub" style="margin-bottom:0.85rem">请输入管理令牌（ADMIN_TOKEN）</p>
+      <input id="tokenInput" type="password" placeholder="管理令牌" autocomplete="current-password" />
+      <div style="margin-top:0.75rem;display:flex;gap:0.5rem">
+        <button class="btn primary" id="btnLogin" type="button">进入后台</button>
+      </div>
+      <p class="err" id="loginErr"></p>
+    </section>
+
+    <section id="dashView" class="hidden">
+      <header>
+        <h1>售后数据后台</h1>
+        <p class="sub">查看所有玩家创作的售后数据（KV 存储）</p>
+      </header>
+
+      <div class="stats" id="stats"></div>
+
+      <div class="toolbar">
+        <input id="searchInput" type="search" placeholder="搜索标题 / 剧本 / 角色 / ID" style="min-width:220px;flex:1" />
+        <select id="filterPublic">
+          <option value="">全部可见性</option>
+          <option value="1">仅公开</option>
+          <option value="0">仅私密</option>
+        </select>
+        <button class="btn" id="btnRefresh" type="button">刷新</button>
+        <button class="btn" id="btnExport" type="button">导出 JSON</button>
+        <span class="spacer"></span>
+        <button class="btn" id="btnLogout" type="button">退出</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>标题</th>
+              <th>剧本</th>
+              <th>作者</th>
+              <th>对象</th>
+              <th>公开</th>
+              <th>图</th>
+              <th>主题</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <p class="sub" id="tableMeta" style="margin-top:0.6rem"></p>
+    </section>
+  </div>
+
+  <div class="modal" id="detailModal">
+    <div class="modal-card">
+      <h3 id="detailTitle">详情</h3>
+      <dl class="detail-grid" id="detailGrid"></dl>
+      <p class="sub">正文</p>
+      <div class="content-box" id="detailContent"></div>
+      <div class="thumb-row" id="detailImages"></div>
+      <div style="margin-top:0.85rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+        <a class="btn link" id="detailOpen" href="#" target="_blank" rel="noopener">打开页面</a>
+        <button class="btn danger" id="btnDelete" type="button">删除此条</button>
+        <button class="btn" id="btnCloseDetail" type="button">关闭</button>
+      </div>
+      <p class="err" id="detailErr"></p>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const TOKEN_KEY = "shouhou_admin_token";
+    let token = sessionStorage.getItem(TOKEN_KEY) || "";
+    let allItems = [];
+    let currentId = "";
+
+    function headers() {
+      return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+    }
+
+    async function api(path, options = {}) {
+      const res = await fetch(path, { ...options, headers: { ...headers(), ...(options.headers || {}) } });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        logout();
+        throw new Error("令牌无效，请重新登录");
+      }
+      if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`);
+      return data;
+    }
+
+    function fmtTime(ts) {
+      if (!ts) return "-";
+      return new Date(ts).toLocaleString("zh-CN", { hour12: false });
+    }
+
+    function showDash() {
+      $("loginView").classList.add("hidden");
+      $("dashView").classList.remove("hidden");
+    }
+
+    function logout() {
+      token = "";
+      sessionStorage.removeItem(TOKEN_KEY);
+      $("dashView").classList.add("hidden");
+      $("loginView").classList.remove("hidden");
+      $("loginErr").textContent = "";
+    }
+
+    async function login() {
+      token = $("tokenInput").value.trim();
+      if (!token) {
+        $("loginErr").textContent = "请输入令牌";
+        return;
+      }
+      try {
+        await api("/api/admin/stats");
+        sessionStorage.setItem(TOKEN_KEY, token);
+        $("loginErr").textContent = "";
+        showDash();
+        await loadAll();
+      } catch (err) {
+        $("loginErr").textContent = err.message;
+      }
+    }
+
+    async function loadStats() {
+      const s = await api("/api/admin/stats");
+      $("stats").innerHTML = `
+        <div class="stat"><b>${s.total}</b><span>总售后</span></div>
+        <div class="stat"><b>${s.publicCount}</b><span>公开</span></div>
+        <div class="stat"><b>${s.privateCount}</b><span>私密</span></div>
+        <div class="stat"><b>${s.withImages}</b><span>含配图</span></div>
+        <div class="stat"><b>${s.scriptCount}</b><span>剧本数</span></div>`;
+    }
+
+    function filteredItems() {
+      const q = $("searchInput").value.trim().toLowerCase();
+      const pub = $("filterPublic").value;
+      return allItems.filter((item) => {
+        if (pub === "1" && !item.public) return false;
+        if (pub === "0" && item.public) return false;
+        if (!q) return true;
+        const hay = [item.id, item.title, item.script, item.me, item.target, item.blurb].join(" ").toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    function renderTable() {
+      const items = filteredItems();
+      $("tbody").innerHTML = items.map((item) => `
+        <tr>
+          <td>${fmtTime(item.created)}</td>
+          <td>${esc(item.title)}<br><span class="sub" style="font-size:0.72rem;color:var(--muted)">${esc(item.id)}</span></td>
+          <td>${esc(item.script || "-")}</td>
+          <td>${esc(item.me || "-")}</td>
+          <td>${esc(item.target || "-")}</td>
+          <td><span class="tag ${item.public ? "pub" : "priv"}">${item.public ? "公开" : "私密"}</span></td>
+          <td>${item.imageCount}</td>
+          <td>${esc(item.theme || "-")}</td>
+          <td>
+            <button class="btn" data-id="${esc(item.id)}" data-action="detail">详情</button>
+            <a class="link" href="${esc(item.url)}" target="_blank" rel="noopener">打开</a>
+          </td>
+        </tr>`).join("");
+      $("tableMeta").textContent = `显示 ${items.length} / ${allItems.length} 条`;
+      $("tbody").querySelectorAll("button[data-action=detail]").forEach((btn) => {
+        btn.addEventListener("click", () => openDetail(btn.dataset.id));
+      });
+    }
+
+    function esc(s) {
+      return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+    }
+
+    async function loadAll() {
+      const data = await api("/api/admin/shares");
+      allItems = data.items || [];
+      await loadStats();
+      renderTable();
+    }
+
+    async function openDetail(id) {
+      currentId = id;
+      $("detailErr").textContent = "";
+      try {
+        const d = await api(`/api/admin/share/${id}`);
+        $("detailTitle").textContent = d.title || id;
+        $("detailGrid").innerHTML = `
+          <div><dt>ID</dt><dd>${esc(d.id)}</dd></div>
+          <div><dt>创建时间</dt><dd>${fmtTime(d.created)}</dd></div>
+          <div><dt>剧本</dt><dd>${esc(d.script || "-")}</dd></div>
+          <div><dt>作者 → 对象</dt><dd>${esc(d.me || "-")} → ${esc(d.target || "-")}</dd></div>
+          <div><dt>公开</dt><dd>${d.public ? "是" : "否"}</dd></div>
+          <div><dt>数据大小</dt><dd>${(d.payloadSize / 1024).toFixed(1)} KB</dd></div>
+          <div><dt>主题</dt><dd>${esc(d.theme?.preset || d.theme || "-")}</dd></div>
+          <div><dt>链接</dt><dd><a class="link" href="${esc(d.url)}" target="_blank">${esc(d.url)}</a></dd></div>`;
+        $("detailContent").textContent = d.content || "";
+        $("detailImages").innerHTML = (d.images || []).map((src) => `<img src="${esc(src)}" alt="" />`).join("");
+        $("detailOpen").href = d.url;
+        $("detailModal").classList.add("open");
+      } catch (err) {
+        $("detailErr").textContent = err.message;
+      }
+    }
+
+    async function deleteCurrent() {
+      if (!currentId || !confirm(`确定删除 ${currentId} ？此操作不可恢复`)) return;
+      try {
+        await api(`/api/admin/share/${currentId}`, { method: "DELETE" });
+        $("detailModal").classList.remove("open");
+        await loadAll();
+      } catch (err) {
+        $("detailErr").textContent = err.message;
+      }
+    }
+
+    function exportJson() {
+      const blob = new Blob([JSON.stringify(filteredItems(), null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `shouhou-export-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    $("btnLogin").addEventListener("click", login);
+    $("tokenInput").addEventListener("keydown", (e) => { if (e.key === "Enter") login(); });
+    $("btnLogout").addEventListener("click", logout);
+    $("btnRefresh").addEventListener("click", loadAll);
+    $("btnExport").addEventListener("click", exportJson);
+    $("searchInput").addEventListener("input", renderTable);
+    $("filterPublic").addEventListener("change", renderTable);
+    $("btnCloseDetail").addEventListener("click", () => $("detailModal").classList.remove("open"));
+    $("btnDelete").addEventListener("click", deleteCurrent);
+    $("detailModal").addEventListener("click", (e) => { if (e.target === $("detailModal")) $("detailModal").classList.remove("open"); });
+
+    if (token) {
+      showDash();
+      loadAll().catch(() => logout());
+    }
+  </script>
+</body>
+</html>

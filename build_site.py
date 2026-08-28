@@ -10,7 +10,7 @@ import urllib.parse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-SKIP_DIRS = {".git", ".git.bak-hub", "__pycache__", "pages", "media", "scripts", ".github", "functions", "create", "browse", "dist", ".wrangler"}
+SKIP_DIRS = {".git", ".git.bak-hub", "__pycache__", "pages", "media", "scripts", ".github", "functions", "create", "browse", "admin", "dist", ".wrangler"}
 # GitHub Pages is often slow/blocked in CN; serve media via jsDelivr
 CDN_BASE = "https://cdn.jsdelivr.net/gh/zhaohe33/jubensha-shouhou@main/"
 PAGES_BASE = "https://zhaohe33.github.io/jubensha-shouhou/"
