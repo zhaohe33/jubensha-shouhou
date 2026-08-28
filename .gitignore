@@ -1,6 +1,9 @@
 ﻿**/.git.bak-hub/
 **/.git.bak-hub/**
 
+# Scratch downloads while mapping Qiandao covers
+media/covers/_candidates/
+
 # Large originals — web copies live in media/
 暗夜降至/**/*.mp4
 空山/**/*.mp4

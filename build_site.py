@@ -10,7 +10,7 @@ import urllib.parse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-SKIP_DIRS = {".git", ".git.bak-hub", "__pycache__", "pages"}
+SKIP_DIRS = {".git", ".git.bak-hub", "__pycache__", "pages", "media", "scripts", ".github"}
 # GitHub Pages is often slow/blocked in CN; serve media via jsDelivr
 CDN_BASE = "https://cdn.jsdelivr.net/gh/zhaohe33/jubensha-shouhou@main/"
 PAGES_BASE = "https://zhaohe33.github.io/jubensha-shouhou/"
@@ -38,6 +38,22 @@ IMAGE_ALIASES = {
 
 AUDIO_ALIASES = {
     "贪欢/林江/武宁/music/bgm-soft.mp3": "media/tan-huan-bgm.mp3",
+}
+
+# Hub card covers sourced from Qiandao script pages (treasure.qiandaocdn.com).
+COVER_ALIASES: dict[tuple[str, str, str], str] = {
+    ("如故", "李文瑙", "卫子谣"): "media/covers/ruguy-weiziyao.jpg",
+    ("如故", "李文瑙", "连世疆"): "media/covers/ruguy-lianshijiang.jpg",
+    ("暗夜降至", "车允智", "金在秀"): "media/covers/anye-jinzaixiu-poster.jpg",
+    ("洗劫伦敦所有的玫瑰", "阿尔芒", "斯黛拉"): "media/covers/lundun-sidaila.png",
+    ("洗劫罗马所有的情书", "维托", "黛琳"): "media/covers/luoma-dailin.jpg",
+    ("流氓叙事", "程聿怀", "黛利拉"): "media/covers/liumang-dailila.jpg",
+    ("流氓叙事", "程聿怀", "程走柳"): "media/covers/liumang-chengzouliu-cover.jpg",
+    ("流氓叙事", "蒋伯驾", "程走柳"): "media/covers/liumang-chengzouliu-cover.jpg",
+    ("流氓叙事", "蒋伯驾", "缪宏谟"): "media/covers/liumang-miaohongmo-cover.jpg",
+    ("空山", "李逸", "花想容"): "media/covers/kongshan-huaxiangrong-cover.jpg",
+    ("空山", "李逸", "阿绿姑娘"): "media/covers/kongshan-aluniang-cover.jpg",
+    ("青白", "苏无恙", "阿喜"): "media/covers/qingbai-axi-cover.jpg",
 }
 
 
@@ -270,6 +286,10 @@ def make_entry(script: str, me: str, target: str, folder: Path, extra_files: lis
                 cover = rel_posix(imgs[0])
     if not cover and images:
         cover = rel_posix(images[0])
+
+    hub_cover = COVER_ALIASES.get((script, me, target))
+    if hub_cover and (ROOT / hub_cover).exists():
+        cover = hub_cover
 
     existing_src = html_files[0] if html_files else None
     share_url = read_url_file(url_files[0]) if url_files else None
