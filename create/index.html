@@ -33,7 +33,7 @@
         radial-gradient(ellipse 80% 55% at 12% 8%, rgba(120, 48, 40, 0.2), transparent 55%),
         linear-gradient(180deg, #0c0a09 0%, #14110e 50%, #0f0d0b 100%);
     }
-    .page { position: relative; z-index: 2; max-width: 920px; margin: 0 auto; padding: 1.2rem 1rem 3rem; }
+    .page { position: relative; z-index: 2; max-width: 1040px; margin: 0 auto; padding: 1.2rem 1rem 3rem; }
     .top { text-align: center; margin-bottom: 1.2rem; }
     .top-brand {
       font-family: "Ma Shan Zheng", cursive;
@@ -89,11 +89,26 @@
     }
     .upload:hover, .upload.drag { border-color: rgba(239, 230, 214, 0.5); }
     .upload p { font-size: 0.8rem; color: var(--fade); letter-spacing: 0.08em; }
-    .upload img {
-      display: none; width: 100%; max-height: 220px; object-fit: cover;
-      margin-top: 0.75rem; border: 1px solid var(--line);
+    .img-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.75rem;
     }
-    .upload.has-img img { display: block; }
+    .img-item {
+      position: relative;
+      border: 1px solid var(--line);
+      aspect-ratio: 3 / 4;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.25);
+    }
+    .img-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .img-item button {
+      position: absolute; top: 4px; right: 4px;
+      width: 22px; height: 22px; border: none; border-radius: 50%;
+      background: rgba(0, 0, 0, 0.65); color: var(--paper);
+      cursor: pointer; font-size: 14px; line-height: 1;
+    }
     .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
     .btn {
       border: 1px solid rgba(239, 230, 214, 0.35);
@@ -115,11 +130,26 @@
     .preview .sub { color: var(--paper-soft); font-size: 0.85rem; letter-spacing: 0.1em; margin-bottom: 1rem; }
     .preview .line { width: 2rem; height: 1px; background: var(--seal); margin-bottom: 1rem; }
     .preview .prose { white-space: pre-wrap; letter-spacing: 0.04em; line-height: 1.9; font-size: 0.95rem; }
-    .preview .cover {
-      margin-top: 1rem; width: 100%; display: none;
-      border: 1px solid var(--line); object-fit: cover; max-height: 280px;
+    .preview-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) min(140px, 38%);
+      gap: 0.85rem;
+      align-items: start;
     }
-    .preview .cover.visible { display: block; }
+    .preview-side {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .preview-side img {
+      width: 100%;
+      border: 1px solid var(--line);
+      object-fit: cover;
+      aspect-ratio: 3 / 4;
+      display: block;
+    }
+    .preview-side:empty { display: none; }
+    .preview-layout.no-images { grid-template-columns: 1fr; }
     .modal {
       position: fixed; inset: 0; z-index: 50; display: none;
       align-items: center; justify-content: center; padding: 1rem;
@@ -141,6 +171,10 @@
     @media (max-width: 760px) {
       .layout { grid-template-columns: 1fr; }
       .row { grid-template-columns: 1fr; }
+      .img-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .preview-layout { grid-template-columns: 1fr; }
+      .preview-side { flex-direction: row; overflow-x: auto; }
+      .preview-side img { width: 38vw; max-width: 140px; flex: 0 0 auto; }
     }
   </style>
 </head>
@@ -183,13 +217,13 @@
           <textarea id="content" placeholder="在这里写下你想对 TA 说的话……&#10;&#10;段落之间空一行即可分段。"></textarea>
         </div>
         <div class="field">
-          <label>配图（可选）</label>
+          <label>配图（可选，最多 8 张）</label>
           <div class="upload" id="uploadZone">
-            <p>点击或拖拽上传图片</p>
-            <img id="uploadPreview" alt="" />
-            <input id="fileInput" type="file" accept="image/*" hidden />
+            <p>点击或拖拽上传，可多选</p>
+            <input id="fileInput" type="file" accept="image/*" multiple hidden />
           </div>
-          <p class="hint" id="imgHint">建议竖图或角色立绘，会自动压缩以适合分享。</p>
+          <div class="img-grid" id="imgGrid"></div>
+          <p class="hint" id="imgHint">图片会显示在正文右侧，多张可上下排列。</p>
         </div>
         <div class="actions">
           <button class="btn" type="button" id="btnPreview">刷新预览</button>
@@ -204,8 +238,12 @@
         <h3 id="pvTitle">致……</h3>
         <p class="sub" id="pvSub">我 → TA</p>
         <div class="line" aria-hidden="true"></div>
-        <div class="prose" id="pvContent">在左侧输入正文后，这里会实时预览。</div>
-        <img class="cover" id="pvCover" alt="" />
+        <div class="preview-layout" id="pvLayout">
+          <div class="preview-main">
+            <div class="prose" id="pvContent">在左侧输入正文后，这里会实时预览。</div>
+          </div>
+          <div class="preview-side" id="pvSide"></div>
+        </div>
       </section>
     </div>
   </div>
@@ -232,14 +270,16 @@
     const $ = (id) => document.getElementById(id);
     const els = {
       script: $("script"), me: $("me"), target: $("target"), title: $("title"), content: $("content"),
-      uploadZone: $("uploadZone"), fileInput: $("fileInput"), uploadPreview: $("uploadPreview"),
+      uploadZone: $("uploadZone"), fileInput: $("fileInput"), imgGrid: $("imgGrid"),
       imgHint: $("imgHint"), statusHint: $("statusHint"),
-      pvMeta: $("pvMeta"), pvTitle: $("pvTitle"), pvSub: $("pvSub"), pvContent: $("pvContent"), pvCover: $("pvCover"),
+      pvMeta: $("pvMeta"), pvTitle: $("pvTitle"), pvSub: $("pvSub"), pvContent: $("pvContent"),
+      pvSide: $("pvSide"), pvLayout: $("pvLayout"),
       shareModal: $("shareModal"), shareUrl: $("shareUrl"), qrImg: $("qrImg"), modalHint: $("modalHint"),
       btnPreview: $("btnPreview"), btnShare: $("btnShare"), btnCopy: $("btnCopy"), btnNativeShare: $("btnNativeShare"), btnClose: $("btnClose"),
     };
 
-    let imageData = "";
+    const MAX_IMAGES = 8;
+    let images = [];
     let lastShareUrl = "";
 
     function getTitle() {
@@ -257,16 +297,27 @@
       els.pvTitle.textContent = getTitle();
       els.pvSub.textContent = me && target ? `${me} → ${target}` : (me || target || "");
       els.pvContent.textContent = els.content.value.trim() || "（暂无文字）";
-      if (imageData) {
-        els.pvCover.src = imageData;
-        els.pvCover.classList.add("visible");
-      } else {
-        els.pvCover.classList.remove("visible");
-        els.pvCover.removeAttribute("src");
-      }
+      els.pvSide.innerHTML = images.map((src) => `<img src="${src}" alt="" />`).join("");
+      els.pvLayout.classList.toggle("no-images", images.length === 0);
+      renderImageGrid();
     }
 
-    function compressImage(dataUrl, maxW = 1200, quality = 0.82) {
+    function renderImageGrid() {
+      els.imgGrid.innerHTML = images.map((src, i) => `
+        <div class="img-item">
+          <img src="${src}" alt="" />
+          <button type="button" data-index="${i}" aria-label="删除图片">×</button>
+        </div>`).join("");
+      els.imgGrid.querySelectorAll("button").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          images.splice(Number(btn.dataset.index), 1);
+          updatePreview();
+        });
+      });
+    }
+
+    function compressImage(dataUrl, maxW = 1000, quality = 0.78) {
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
@@ -282,8 +333,8 @@
           const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0, w, h);
           let out = canvas.toDataURL("image/jpeg", quality);
-          if (out.length > 450000 && quality > 0.45) {
-            resolve(compressImage(dataUrl, maxW, quality - 0.12));
+          if (out.length > 320000 && quality > 0.42) {
+            resolve(compressImage(dataUrl, maxW, quality - 0.1));
             return;
           }
           resolve(out);
@@ -293,21 +344,30 @@
       });
     }
 
-    async function handleFile(file) {
-      if (!file || !file.type.startsWith("image/")) return;
+    async function handleFiles(fileList) {
+      const files = Array.from(fileList || []).filter((f) => f.type.startsWith("image/"));
+      if (!files.length) return;
+      if (images.length >= MAX_IMAGES) {
+        els.imgHint.textContent = `最多上传 ${MAX_IMAGES} 张图片`;
+        els.imgHint.className = "hint err";
+        return;
+      }
+
       els.imgHint.textContent = "正在压缩图片…";
       els.imgHint.className = "hint";
+
       try {
-        const reader = new FileReader();
-        const dataUrl = await new Promise((res, rej) => {
-          reader.onload = (e) => res(e.target.result);
-          reader.onerror = () => rej(new Error("读取失败"));
-          reader.readAsDataURL(file);
-        });
-        imageData = await compressImage(dataUrl);
-        els.uploadPreview.src = imageData;
-        els.uploadZone.classList.add("has-img");
-        els.imgHint.textContent = "✓ 图片已就绪";
+        for (const file of files) {
+          if (images.length >= MAX_IMAGES) break;
+          const reader = new FileReader();
+          const dataUrl = await new Promise((res, rej) => {
+            reader.onload = (e) => res(e.target.result);
+            reader.onerror = () => rej(new Error("读取失败"));
+            reader.readAsDataURL(file);
+          });
+          images.push(await compressImage(dataUrl));
+        }
+        els.imgHint.textContent = `✓ 已添加 ${images.length} 张图片`;
         els.imgHint.className = "hint ok";
         updatePreview();
       } catch (err) {
@@ -361,7 +421,7 @@
             script: els.script.value.trim(),
             me: els.me.value.trim(),
             target: els.target.value.trim(),
-            image: imageData,
+            images,
           }),
         });
         const data = await res.json();
@@ -381,13 +441,13 @@
     }
 
     els.uploadZone.addEventListener("click", () => els.fileInput.click());
-    els.fileInput.addEventListener("change", (e) => handleFile(e.target.files[0]));
+    els.fileInput.addEventListener("change", (e) => { handleFiles(e.target.files); e.target.value = ""; });
     els.uploadZone.addEventListener("dragover", (e) => { e.preventDefault(); els.uploadZone.classList.add("drag"); });
     els.uploadZone.addEventListener("dragleave", () => els.uploadZone.classList.remove("drag"));
     els.uploadZone.addEventListener("drop", (e) => {
       e.preventDefault();
       els.uploadZone.classList.remove("drag");
-      handleFile(e.dataTransfer.files[0]);
+      handleFiles(e.dataTransfer.files);
     });
 
     ["input", "change"].forEach((evt) => {

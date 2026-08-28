@@ -1,11 +1,3 @@
-function esc(s) {
-  return String(s || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 function paragraphs(text) {
   return String(text || "")
     .replace(/\r\n/g, "\n")
@@ -21,6 +13,22 @@ function paragraphs(text) {
       return `        <p>${lines}</p>`;
     })
     .join("\n");
+}
+
+function getImages(data) {
+  if (Array.isArray(data.imgs)) {
+    return data.imgs.filter((img) => typeof img === "string" && img.startsWith("data:image/"));
+  }
+  if (data.img && data.img.startsWith("data:image/")) return [data.img];
+  return [];
+}
+
+function esc(s) {
+  return String(s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 export async function onRequestGet(context) {
@@ -47,11 +55,23 @@ export async function onRequestGet(context) {
   const target = data.r || "";
   const meta = [script, me].filter(Boolean).join(" · ");
   const desc = (data.c || "").replace(/\s+/g, " ").trim().slice(0, 120);
-  const ogImage = data.img ? `${origin}/api/img/${params.id}` : `${origin}/media/duos/qingbai-suwuyang-axi.jpg`;
+  const images = getImages(data);
+  const ogImage = images.length
+    ? `${origin}/api/img/${params.id}`
+    : `${origin}/media/duos/qingbai-suwuyang-axi.jpg`;
   const pageUrl = `${origin}/p/${params.id}`;
 
-  const imgBlock = data.img
-    ? `      <div class="media"><img src="/api/img/${esc(params.id)}" alt="${esc(title)}" /></div>\n`
+  const sideImgs = images
+    .map(
+      (_, i) =>
+        `          <img src="/api/img/${esc(params.id)}?i=${i}" alt="${esc(title)}" loading="lazy" />`,
+    )
+    .join("\n");
+
+  const sideBlock = images.length
+    ? `      <aside class="letter-side" aria-label="配图">
+${sideImgs}
+      </aside>\n`
     : "";
 
   const html = `<!DOCTYPE html>
@@ -80,7 +100,11 @@ export async function onRequestGet(context) {
     body::before { content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
       background: radial-gradient(ellipse 80% 55% at 12% 8%, rgba(120,48,40,.18), transparent 55%),
         linear-gradient(180deg,#0c0a09 0%,#14110e 50%,#0f0d0b 100%); }
-    .wrap { position:relative; z-index:2; max-width:720px; margin:0 auto; padding:2.5rem 1.35rem 4rem; }
+    .wrap { position:relative; z-index:2; max-width:960px; margin:0 auto; padding:2.5rem 1.35rem 4rem; }
+    .letter-layout { display:grid; grid-template-columns:minmax(0,1fr) min(300px,36%); gap:1.5rem; align-items:start; }
+    .letter-main { min-width:0; }
+    .letter-side { display:flex; flex-direction:column; gap:.75rem; position:sticky; top:1.25rem; }
+    .letter-side img { width:100%; display:block; border:1px solid var(--line); object-fit:cover; }
     .back { display:inline-flex; color:var(--fade); text-decoration:none; font-size:.82rem; letter-spacing:.22em; margin-bottom:2.2rem; }
     .back:hover { color:var(--paper); }
     .meta { font-size:.78rem; letter-spacing:.28em; color:rgba(156,47,42,.85); margin-bottom:.85rem; }
@@ -88,11 +112,14 @@ export async function onRequestGet(context) {
     .sub { color:var(--paper-soft); letter-spacing:.12em; font-size:.95rem; margin-bottom:2rem; }
     .line { width:2.2rem; height:1px; background:var(--seal); margin:0 0 2rem; }
     .prose p { margin-bottom:1.15rem; letter-spacing:.04em; }
-    .media { margin:1.6rem 0 0; }
-    .media img { width:100%; display:block; border:1px solid var(--line); }
     .cta { margin-top:2.5rem; padding-top:1.5rem; border-top:1px solid var(--line); }
     .cta a { display:inline-block; margin-right:.75rem; margin-bottom:.5rem; padding:.65rem 1rem; border:1px solid rgba(239,230,214,.35); color:var(--paper); text-decoration:none; font-size:.82rem; letter-spacing:.18em; }
     .cta a:hover { border-color:rgba(239,230,214,.7); }
+    @media (max-width:760px) {
+      .letter-layout { grid-template-columns:1fr; }
+      .letter-side { position:static; flex-direction:row; overflow-x:auto; gap:.55rem; padding-bottom:.25rem; }
+      .letter-side img { width:42vw; max-width:200px; flex:0 0 auto; }
+    }
   </style>
 </head>
 <body>
@@ -102,13 +129,17 @@ export async function onRequestGet(context) {
     <h1>${esc(title)}</h1>
     ${me && target ? `<p class="sub">${esc(me)} → ${esc(target)}</p>` : ""}
     <div class="line" aria-hidden="true"></div>
-    <article class="prose">
+    <div class="letter-layout">
+      <div class="letter-main">
+        <article class="prose">
 ${paragraphs(data.c) || "        <p class=\"empty\">（暂无文字）</p>"}
-    </article>
-${imgBlock}    <div class="cta">
-      <a href="/browse/">浏览公开售后</a>
-      <a href="/create/">我也要写一封</a>
-    </div>
+        </article>
+        <div class="cta">
+          <a href="/browse/">浏览公开售后</a>
+          <a href="/create/">我也要写一封</a>
+        </div>
+      </div>
+${sideBlock}    </div>
   </div>
 </body>
 </html>`;

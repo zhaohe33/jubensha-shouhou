@@ -1,5 +1,6 @@
 const ID_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
-const MAX_BODY = 900_000; // ~900KB JSON (image compressed on client)
+const MAX_BODY = 900_000;
+const MAX_IMAGES = 8;
 
 function newId() {
   let id = "";
@@ -20,6 +21,20 @@ function json(data, status = 200) {
       "Access-Control-Allow-Headers": "Content-Type",
     },
   });
+}
+
+function normalizeImages(body) {
+  const fromArray = Array.isArray(body.images) ? body.images : [];
+  const legacy = body.image ? [body.image] : [];
+  const merged = [...fromArray, ...legacy];
+  const imgs = [];
+  for (const item of merged) {
+    const img = String(item || "");
+    if (!img.startsWith("data:image/")) continue;
+    if (imgs.length >= MAX_IMAGES) break;
+    imgs.push(img);
+  }
+  return imgs;
 }
 
 export async function onRequestOptions() {
@@ -44,7 +59,7 @@ export async function onRequestPost(context) {
   const script = String(body.script || "").trim().slice(0, 60);
   const me = String(body.me || "").trim().slice(0, 40);
   const target = String(body.target || "").trim().slice(0, 40);
-  const image = String(body.image || "");
+  const imgs = normalizeImages(body);
 
   if (!title && !content) {
     return json({ error: "请填写标题或正文" }, 400);
@@ -56,13 +71,14 @@ export async function onRequestPost(context) {
     s: script,
     m: me,
     r: target,
-    img: image.startsWith("data:image/") ? image : "",
+    imgs,
+    img: imgs[0] || "",
     created: Date.now(),
   };
 
   const serialized = JSON.stringify(payload);
   if (serialized.length > MAX_BODY) {
-    return json({ error: "内容过大，请压缩图片或减少文字" }, 413);
+    return json({ error: "内容过大，请减少图片数量或压缩后再试" }, 413);
   }
 
   let id = newId();
@@ -77,6 +93,7 @@ export async function onRequestPost(context) {
   return json({
     id,
     url: `${origin}/p/${id}`,
-    imageUrl: payload.img ? `${origin}/api/img/${id}` : "",
+    imageUrl: imgs.length ? `${origin}/api/img/${id}` : "",
+    imageCount: imgs.length,
   });
 }
