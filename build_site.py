@@ -56,6 +56,23 @@ COVER_ALIASES: dict[tuple[str, str, str], str] = {
     ("青白", "苏无恙", "阿喜"): "media/covers/qingbai-axi-cover.jpg",
 }
 
+# AI duo portraits (player character + letter recipient) for hub cards.
+DUO_COVER_ALIASES: dict[tuple[str, str, str], str] = {
+    ("如故", "李文瑙", "卫子谣"): "media/duos/ruguy-liwennao-weiziyao.jpg",
+    ("如故", "李文瑙", "连世疆"): "media/duos/ruguy-liwennao-lianshijiang.jpg",
+    ("暗夜降至", "车允智", "金在秀"): "media/duos/anye-cheyunzhi-jinzaixiu.jpg",
+    ("洗劫伦敦所有的玫瑰", "阿尔芒", "斯黛拉"): "media/duos/lundun-aermang-sidaila.jpg",
+    ("洗劫罗马所有的情书", "维托", "黛琳"): "media/duos/luoma-weituo-dailin.jpg",
+    ("流氓叙事", "程聿怀", "黛利拉"): "media/duos/liumang-chengyuhuai-dailila.jpg",
+    ("流氓叙事", "程聿怀", "程走柳"): "media/duos/liumang-chengyuhuai-chengzouliu.jpg",
+    ("流氓叙事", "蒋伯驾", "程走柳"): "media/duos/liumang-jiangbojia-chengzouliu.jpg",
+    ("流氓叙事", "蒋伯驾", "缪宏谟"): "media/duos/liumang-jiangbojia-miaohongmo.jpg",
+    ("空山", "李逸", "花想容"): "media/duos/kongshan-liyi-huaxiangrong.jpg",
+    ("空山", "李逸", "阿绿姑娘"): "media/duos/kongshan-liyi-aluniang.jpg",
+    ("贪欢", "林江", "武宁"): "media/duos/tanhuan-linjiang-wuning.jpg",
+    ("青白", "苏无恙", "阿喜"): "media/duos/qingbai-suwuyang-axi.jpg",
+}
+
 
 def cdn_url(rel_posix_path: str) -> str:
     """Build a jsDelivr URL for a repo-relative posix path."""
@@ -287,7 +304,9 @@ def make_entry(script: str, me: str, target: str, folder: Path, extra_files: lis
     if not cover and images:
         cover = rel_posix(images[0])
 
-    hub_cover = COVER_ALIASES.get((script, me, target))
+    hub_cover = DUO_COVER_ALIASES.get((script, me, target))
+    if not hub_cover:
+        hub_cover = COVER_ALIASES.get((script, me, target))
     if hub_cover and (ROOT / hub_cover).exists():
         cover = hub_cover
 
