@@ -1,3 +1,6 @@
+import { getAuthor } from "../_lib/share-store.js";
+import { getImageCount } from "../_lib/images.js";
+
 const CATALOG_KEY = "public:catalog";
 const MAX_CATALOG = 200;
 
@@ -41,10 +44,7 @@ export async function onRequestGet(context) {
     if (!data.p) continue;
 
     const blurb = String(data.c || "").replace(/\s+/g, " ").trim();
-    const hasImage = Boolean(
-      (Array.isArray(data.imgs) && data.imgs.length) ||
-        (data.img && data.img.startsWith("data:image/")),
-    );
+    const hasImage = getImageCount(data) > 0;
 
     items.push({
       id: item.id,
@@ -52,6 +52,7 @@ export async function onRequestGet(context) {
       script: data.s || "",
       me: data.m || "",
       target: data.r || "",
+      author: getAuthor(data),
       blurb: blurb.length > 28 ? `${blurb.slice(0, 28)}…` : blurb,
       hasImage,
       user: true,
@@ -62,6 +63,7 @@ export async function onRequestGet(context) {
       s: data.s,
       m: data.m,
       r: data.r,
+      a: getAuthor(data),
       created: data.created || item.created || 0,
     });
   }

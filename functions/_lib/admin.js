@@ -1,3 +1,7 @@
+import { getAuthor } from "./share-store.js";
+import { getImageCount } from "./images.js";
+import { getShareViews, isStatsKey } from "./analytics.js";
+
 const CATALOG_KEY = "public:catalog";
 
 export function unauthorized() {
@@ -28,8 +32,7 @@ export function json(data, status = 200) {
   });
 }
 
-export function summarizeShare(id, data, origin) {
-  const imgs = Array.isArray(data.imgs) ? data.imgs : data.img ? [data.img] : [];
+export async function summarizeShare(id, data, origin, env) {
   const text = String(data.c || "");
   return {
     id,
@@ -37,12 +40,15 @@ export function summarizeShare(id, data, origin) {
     script: data.s || "",
     me: data.m || "",
     target: data.r || "",
+    author: getAuthor(data),
     public: Boolean(data.p),
     created: data.created || null,
-    imageCount: imgs.length,
+    imageCount: getImageCount(data),
+    views: env ? await getShareViews(env, id) : 0,
     textLength: text.length,
     blurb: text.replace(/\s+/g, " ").trim().slice(0, 80),
     theme: data.th?.preset || "ink",
+    hasEditToken: Boolean(data.e),
     url: `${origin}/p/${id}`,
   };
 }
@@ -54,10 +60,13 @@ export async function listAllShares(env, origin) {
     const page = await env.SHARES.list({ cursor, limit: 100 });
     for (const key of page.keys) {
       if (key.name === CATALOG_KEY) continue;
+      if (isStatsKey(key.name)) continue;
+      if (key.name.startsWith("image:")) continue;
+      if (key.name.startsWith("audio:")) continue;
       const raw = await env.SHARES.get(key.name);
       if (!raw) continue;
       try {
-        items.push(summarizeShare(key.name, JSON.parse(raw), origin));
+        items.push(await summarizeShare(key.name, JSON.parse(raw), origin, env));
       } catch {
         /* skip */
       }

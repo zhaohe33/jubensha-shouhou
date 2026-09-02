@@ -15,7 +15,8 @@ wrangler pages secret put ADMIN_TOKEN --project-name=jubensha-shouhou
 ## 功能
 
 - 查看所有玩家创作的售后（KV 全量列表）
-- 统计：总数 / 公开 / 私密 / 含图 / 剧本数
+- 统计：网站访问 / 售后阅读 / 总数 / 公开 / 私密 / 含图 / 剧本数
+- 列表显示每篇阅读次数
 - 搜索与筛选
 - 详情：正文、配图、主题、链接
 - 导出 JSON

@@ -10,7 +10,7 @@ import urllib.parse
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-SKIP_DIRS = {".git", ".git.bak-hub", "__pycache__", "pages", "media", "scripts", ".github", "functions", "create", "browse", "admin", "dist", ".wrangler"}
+SKIP_DIRS = {".git", ".git.bak-hub", "__pycache__", "pages", "media", "scripts", ".github", "functions", "create", "browse", "admin", "dist", ".wrangler", "guide"}
 # GitHub Pages is often slow/blocked in CN; serve media via jsDelivr
 CDN_BASE = "https://cdn.jsdelivr.net/gh/zhaohe33/jubensha-shouhou@main/"
 PAGES_BASE = "https://zhaohe33.github.io/jubensha-shouhou/"
@@ -383,6 +383,7 @@ def make_entry(script: str, me: str, target: str, folder: Path, extra_files: lis
         "script": script,
         "me": me,
         "target": target,
+        "author": "Yolo",
         "title": title,
         "blurb": blurb,
         "cover": cover,
@@ -415,6 +416,19 @@ def youtube_id(url: str) -> str | None:
     return m.group(1) if m else None
 
 
+def view_beacon_snippet(entry: dict) -> str:
+    path = entry["view_rel"].replace("/index.html", "")
+    return f"""  <script>
+    fetch("/api/view", {{
+      method: "POST",
+      headers: {{ "Content-Type": "application/json" }},
+      body: JSON.stringify({{ page: "static", path: {json.dumps(path)} }}),
+      keepalive: true,
+    }}).catch(() => {{}});
+  </script>
+"""
+
+
 def write_rich_page(entry: dict) -> None:
     """Adapt an existing immersive page into pages/ with reliable asset URLs."""
     src = ROOT / entry["rich_src"]
@@ -442,7 +456,7 @@ def write_rich_page(entry: dict) -> None:
             )
 
     back = (
-        f'<a href="{prefix}browse/" style="position:fixed;top:1rem;left:1rem;z-index:50;'
+        f'<a href="{prefix}index.html" style="position:fixed;top:1rem;left:1rem;z-index:50;'
         f'color:rgba(239,230,214,.7);text-decoration:none;font-size:.82rem;letter-spacing:.22em;'
         f'font-family:Noto Serif SC,Songti SC,serif;padding:.45rem .75rem;'
         f'border:1px solid rgba(239,230,214,.18);background:rgba(16,14,12,.55);'
@@ -452,6 +466,9 @@ def write_rich_page(entry: dict) -> None:
         text = text.replace("<body>", "<body>\n" + back, 1)
     else:
         text = back + text
+    beacon = view_beacon_snippet(entry)
+    if "</body>" in text:
+        text = text.replace("</body>", beacon + "</body>", 1)
     out.write_text(text, encoding="utf-8")
 
 
@@ -548,7 +565,7 @@ def write_letter_page(entry: dict) -> None:
 </head>
 <body>
   <div class="wrap">
-    <a class="back" href="{prefix}browse/">← 返回合集</a>
+    <a class="back" href="{prefix}index.html">← 返回合集</a>
     <p class="meta">剧本 · {html.escape(entry['script'])}　/　我方 · {html.escape(entry['me'])}</p>
     <h1>{html.escape(entry['title'])}</h1>
     <p class="sub">{html.escape(entry['me'])} → {html.escape(entry['target'])}</p>
@@ -558,23 +575,23 @@ def write_letter_page(entry: dict) -> None:
     </article>
 {media_html}
   </div>
-</body>
+{view_beacon_snippet(entry)}</body>
 </html>
 """
     out.write_text(page, encoding="utf-8")
 
 
 def site_nav(active: str, depth: str = "") -> str:
-    """Shared top nav: active is 'home' | 'browse' | 'create'."""
+    """Shared top nav: active is 'home' | 'create'."""
     home = f"{depth}index.html"
-    browse = f"{depth}browse/"
     create = f"{depth}create/"
+
     def cls(name: str) -> str:
         return "site-nav__link is-active" if active == name else "site-nav__link"
+
     return f"""
     <nav class="site-nav" aria-label="站点导航">
       <a class="{cls('home')}" href="{home}">首页</a>
-      <a class="{cls('browse')}" href="{browse}">公开售后</a>
       <a class="{cls('create')}" href="{create}">创作售后</a>
     </nav>"""
 
@@ -606,138 +623,17 @@ SITE_BASE_CSS = """
 """
 
 
-def render_portal(entry_count: int) -> str:
-    return f"""<!DOCTYPE html>
+def render_browse_redirect() -> str:
+    return """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>剧本杀售后</title>
-  <meta name="description" content="浏览公开售后合集，或为玩家生成可分享的售后网页。" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root {{
-      --ink: #100e0c;
-      --paper: #efe6d6;
-      --paper-soft: #cfc3ae;
-      --fade: rgba(239, 230, 214, 0.55);
-      --seal: #9c2f2a;
-      --line: rgba(239, 230, 214, 0.16);
-    }}
-    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    body {{
-      font-family: "Noto Serif SC", "Songti SC", serif;
-      color: var(--paper);
-      background: var(--ink);
-      line-height: 1.55;
-      min-height: 100vh;
-    }}
-    body::before {{
-      content: "";
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background:
-        radial-gradient(ellipse 80% 55% at 12% 8%, rgba(120, 48, 40, 0.22), transparent 55%),
-        radial-gradient(ellipse 70% 50% at 88% 18%, rgba(70, 58, 40, 0.2), transparent 50%),
-        linear-gradient(180deg, #0c0a09 0%, #14110e 45%, #0f0d0b 100%);
-    }}
-    .page {{ position: relative; z-index: 2; max-width: 920px; margin: 0 auto; padding: 1.6rem 1rem 3rem; }}
-    .top {{ text-align: center; }}
-    .top-brand {{
-      font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(2.4rem, 9vw, 3.6rem);
-      letter-spacing: 0.2em; line-height: 1; margin-left: 0.2em;
-    }}
-    .top-line {{ width: 1.8rem; height: 1px; margin: 0.75rem auto 0.65rem; background: var(--seal); }}
-    .top-lead {{ font-size: 0.88rem; letter-spacing: 0.18em; color: var(--paper-soft); }}
-    {SITE_BASE_CSS}
-    .features {{
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.85rem;
-      margin-top: 2rem;
-    }}
-    .feature {{
-      display: flex;
-      flex-direction: column;
-      text-decoration: none;
-      color: inherit;
-      border: 1px solid var(--line);
-      background: rgba(28, 24, 20, 0.55);
-      padding: 1.35rem 1.1rem 1.2rem;
-      min-height: 220px;
-      transition: border-color .25s, transform .25s, background .25s;
-    }}
-    .feature:hover {{
-      border-color: rgba(239, 230, 214, 0.35);
-      background: rgba(36, 30, 26, 0.72);
-      transform: translateY(-2px);
-    }}
-    .feature-tag {{
-      font-size: 0.68rem;
-      letter-spacing: 0.24em;
-      color: rgba(156, 47, 42, 0.9);
-      margin-bottom: 0.65rem;
-    }}
-    .feature h2 {{
-      font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(1.6rem, 5vw, 2rem);
-      letter-spacing: 0.14em;
-      margin-bottom: 0.55rem;
-      margin-left: 0.08em;
-    }}
-    .feature p {{
-      color: var(--paper-soft);
-      font-size: 0.86rem;
-      letter-spacing: 0.06em;
-      line-height: 1.7;
-      flex: 1;
-    }}
-    .feature-cta {{
-      margin-top: 1rem;
-      font-size: 0.78rem;
-      letter-spacing: 0.2em;
-      color: var(--fade);
-    }}
-    .feature:hover .feature-cta {{ color: var(--paper); }}
-    footer {{
-      text-align: center; margin-top: 2rem;
-      color: rgba(239, 230, 214, 0.35); font-size: 0.72rem; letter-spacing: 0.2em;
-    }}
-    @media (max-width: 640px) {{
-      .features {{ grid-template-columns: 1fr; }}
-      .feature {{ min-height: 0; }}
-    }}
-  </style>
+  <meta http-equiv="refresh" content="0;url=../" />
+  <link rel="canonical" href="../" />
+  <title>跳转中…</title>
+  <script>location.replace("../" + location.search + location.hash);</script>
 </head>
-<body>
-  <div class="page">
-    <header class="top">
-      <h1 class="top-brand">售后</h1>
-      <div class="top-line" aria-hidden="true"></div>
-      <p class="top-lead">局终之后，信仍未完</p>
-      {site_nav("home")}
-    </header>
-
-    <main class="features">
-      <a class="feature" href="browse/">
-        <p class="feature-tag">功能一</p>
-        <h2>公开售后</h2>
-        <p>浏览目前已公开的 {entry_count} 封售后信。按剧本与角色整理，点击进入沉浸式阅读。玩家公开投稿也会显示在此。</p>
-        <span class="feature-cta">进入合集 →</span>
-      </a>
-      <a class="feature" href="create/">
-        <p class="feature-tag">功能二</p>
-        <h2>创作售后</h2>
-        <p>上传文字与配图，一键生成你的售后网页，并分享至微信、抖音、小红书。</p>
-        <span class="feature-cta">开始创作 →</span>
-      </a>
-    </main>
-
-    <footer>剧本杀售后</footer>
-  </div>
-</body>
+<body></body>
 </html>
 """
 
@@ -749,17 +645,31 @@ def filter_options(values: list[str]) -> str:
     return "\n          ".join(opts)
 
 
-def render_hub(entries: list[dict]) -> str:
+def build_facets(entries: list[dict]) -> dict[str, dict[str, list[str]]]:
+    facets: dict[str, dict[str, list[str]]] = {}
+    for e in entries:
+        script = e["script"]
+        me = e["me"]
+        target = e["target"]
+        facets.setdefault(script, {}).setdefault(me, [])
+        if target and target not in facets[script][me]:
+            facets[script][me].append(target)
+    for script in facets:
+        for me in facets[script]:
+            facets[script][me].sort(key=lambda x: x)
+    return facets
+
+
+def render_hub(entries: list[dict], *, depth: str = "") -> str:
     cards = []
-    scripts, authors, targets = [], [], []
+    scripts = []
+    facets = build_facets(entries)
     for e in entries:
         scripts.append(e["script"])
-        authors.append(e["me"])
-        targets.append(e["target"])
-        href = "../" + html.escape(href_for(e), quote=True)
+        href = depth + html.escape(href_for(e), quote=True)
         cover = e["cover"]
         if cover and not str(cover).startswith("http"):
-            cover = "../" + str(cover).lstrip("/")
+            cover = depth + str(cover).lstrip("/")
         visual = (
             f'<div class="entry-visual"><img src="{html.escape(cover)}" alt="" loading="lazy" /></div>'
             if cover
@@ -769,11 +679,18 @@ def render_hub(entries: list[dict]) -> str:
         blurb = e["blurb"]
         if len(blurb) > 28:
             blurb = blurb[:28] + "…"
+        author = e.get("author") or ""
+        author_html = (
+            f'<p class="entry-author">{html.escape(author)}</p>'
+            if author
+            else ""
+        )
         cards.append(f"""
-        <a class="entry" href="{href}" data-script="{html.escape(e['script'])}" data-me="{html.escape(e['me'])}" data-target="{html.escape(e['target'])}">
+        <a class="entry" href="{href}" data-script="{html.escape(e['script'])}" data-author="{html.escape(e['author'])}" data-me="{html.escape(e['me'])}" data-target="{html.escape(e['target'])}">
           {visual}
           <div class="entry-body">
             <p class="entry-script">{html.escape(e['script'])} · {html.escape(e['me'])}</p>
+            {author_html}
             <h3 class="entry-name">{html.escape(e['title'])}</h3>
             <p class="entry-blurb">{html.escape(blurb)}</p>
           </div>
@@ -785,8 +702,8 @@ def render_hub(entries: list[dict]) -> str:
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>公开售后 · 剧本杀售后</title>
-  <meta name="description" content="浏览目前已公开的剧本杀售后信合集。" />
+  <title>剧本杀售后</title>
+  <meta name="description" content="浏览公开售后合集，或为玩家生成可分享的售后网页。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -840,6 +757,28 @@ def render_hub(entries: list[dict]) -> str:
     }}
     .top-count {{
       margin-top: 0.35rem; font-size: 0.72rem; letter-spacing: 0.24em; color: var(--fade);
+    }}
+    .top-actions {{
+      margin-top: 1.1rem;
+      display: flex;
+      justify-content: center;
+    }}
+    .create-cta {{
+      display: inline-block;
+      padding: 0.8rem 2.4rem;
+      border: 1px solid rgba(156, 47, 42, 0.7);
+      background: rgba(156, 47, 42, 0.32);
+      color: var(--paper);
+      text-decoration: none;
+      font-family: "Ma Shan Zheng", cursive;
+      font-size: clamp(1.1rem, 4vw, 1.35rem);
+      letter-spacing: 0.2em;
+      transition: border-color .25s, background .25s, transform .25s;
+    }}
+    .create-cta:hover {{
+      border-color: rgba(156, 47, 42, 0.9);
+      background: rgba(156, 47, 42, 0.48);
+      transform: translateY(-1px);
     }}
     {SITE_BASE_CSS}
     .filters {{
@@ -954,6 +893,10 @@ def render_hub(entries: list[dict]) -> str:
       font-size: 0.68rem; letter-spacing: 0.12em; color: var(--seal);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }}
+    .entry-author {{
+      font-size: 0.72rem; letter-spacing: 0.08em; color: var(--paper-soft);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }}
     .entry-name {{
       font-family: "Ma Shan Zheng", cursive;
       font-size: clamp(1.25rem, 2.4vw, 1.55rem);
@@ -995,9 +938,11 @@ def render_hub(entries: list[dict]) -> str:
     <header class="top">
       <h1 class="top-brand">售后</h1>
       <div class="top-line" aria-hidden="true"></div>
-      <p class="top-lead">公开售后合集</p>
+      <p class="top-lead">局终之后，信仍未完</p>
       <p class="top-count" id="resultCount">共 {len(entries)} 封</p>
-      {site_nav("browse", "../")}
+      <div class="top-actions">
+        <a class="create-cta" href="{depth}create/">创作售后</a>
+      </div>
     </header>
 
     <form class="filters" id="filters" aria-label="筛选售后">
@@ -1008,15 +953,15 @@ def render_hub(entries: list[dict]) -> str:
         </select>
       </div>
       <div class="filter">
-        <label for="filterMe">谁写的</label>
+        <label for="filterMe">角色名</label>
         <select id="filterMe" name="me">
-          {filter_options(authors)}
+          <option value="">全部</option>
         </select>
       </div>
       <div class="filter">
         <label for="filterTarget">送给谁</label>
         <select id="filterTarget" name="target">
-          {filter_options(targets)}
+          <option value="">全部</option>
         </select>
       </div>
       <button class="filter-reset" type="button" id="filterReset">重置</button>
@@ -1034,6 +979,7 @@ def render_hub(entries: list[dict]) -> str:
   <script>
     (function () {{
       const builtinTotal = {len(entries)};
+      const facets = {json.dumps(facets, ensure_ascii=False)};
       let entries = Array.from(document.querySelectorAll(".entry"));
       const scriptEl = document.getElementById("filterScript");
       const meEl = document.getElementById("filterMe");
@@ -1047,7 +993,7 @@ def render_hub(entries: list[dict]) -> str:
         const p = new URLSearchParams(location.search);
         return {{
           script: p.get("script") || "",
-          me: p.get("me") || "",
+          me: p.get("me") || p.get("author") || "",
           target: p.get("target") || "",
         }};
       }}
@@ -1059,6 +1005,76 @@ def render_hub(entries: list[dict]) -> str:
         if (target) p.set("target", target);
         const qs = p.toString();
         history.replaceState(null, "", qs ? ("?" + qs) : location.pathname);
+      }}
+
+      function sortedUnique(values) {{
+        return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));
+      }}
+
+      function mergeFacet(script, me, target) {{
+        if (!script || !me) return;
+        if (!facets[script]) facets[script] = {{}};
+        if (!facets[script][me]) facets[script][me] = [];
+        if (target && !facets[script][me].includes(target)) {{
+          facets[script][me].push(target);
+          facets[script][me].sort((a, b) => a.localeCompare(b, "zh-CN"));
+        }}
+      }}
+
+      function getMeOptions(script) {{
+        if (!script) {{
+          const all = [];
+          for (const s of Object.keys(facets)) {{
+            all.push(...Object.keys(facets[s] || {{}}));
+          }}
+          return sortedUnique(all);
+        }}
+        return sortedUnique(Object.keys(facets[script] || {{}}));
+      }}
+
+      function getTargetOptions(script, me) {{
+        if (script && me) {{
+          return sortedUnique((facets[script] && facets[script][me]) || []);
+        }}
+        if (script) {{
+          const all = [];
+          for (const m of Object.keys(facets[script] || {{}})) {{
+            all.push(...(facets[script][m] || []));
+          }}
+          return sortedUnique(all);
+        }}
+        if (me) {{
+          const all = [];
+          for (const s of Object.keys(facets)) {{
+            if (facets[s][me]) all.push(...facets[s][me]);
+          }}
+          return sortedUnique(all);
+        }}
+        const all = [];
+        for (const s of Object.keys(facets)) {{
+          for (const m of Object.keys(facets[s] || {{}})) {{
+            all.push(...(facets[s][m] || []));
+          }}
+        }}
+        return sortedUnique(all);
+      }}
+
+      function rebuildSelect(el, values, keepValue) {{
+        const prev = keepValue ? el.value : "";
+        el.innerHTML = '<option value="">全部</option>';
+        for (const v of values) {{
+          const opt = document.createElement("option");
+          opt.value = v;
+          opt.textContent = v;
+          el.appendChild(opt);
+        }}
+        if (prev && values.includes(prev)) el.value = prev;
+        else el.value = "";
+      }}
+
+      function syncFilterOptions(keepValues) {{
+        rebuildSelect(meEl, getMeOptions(scriptEl.value), keepValues);
+        rebuildSelect(targetEl, getTargetOptions(scriptEl.value, meEl.value), keepValues);
       }}
 
       function ensureOption(select, value) {{
@@ -1082,16 +1098,18 @@ def render_hub(entries: list[dict]) -> str:
 
       function createUserCard(item) {{
         const script = item.script || "玩家创作";
+        const author = item.author || "";
         const me = item.me || "";
         const target = item.target || "";
         const seal = esc(script.slice(0, 2) || "信");
         const visual = item.hasImage
-          ? `<div class="entry-visual"><img src="../api/img/${{esc(item.id)}}" alt="" loading="lazy" /></div>`
+          ? `<div class="entry-visual"><img src="/api/img/${{esc(item.id)}}" alt="" loading="lazy" /></div>`
           : '<div class="entry-visual entry-visual--plain"><span>信</span></div>';
         const card = document.createElement("a");
         card.className = "entry entry-user";
-        card.href = `../p/${{esc(item.id)}}`;
+        card.href = `/p/${{esc(item.id)}}`;
         card.dataset.script = script;
+        card.dataset.author = author;
         card.dataset.me = me;
         card.dataset.target = target;
         card.innerHTML = `
@@ -1099,6 +1117,7 @@ def render_hub(entries: list[dict]) -> str:
           ${{visual}}
           <div class="entry-body">
             <p class="entry-script">${{esc(script)}}${{me ? ` · ${{esc(me)}}` : ""}}</p>
+            ${{author ? `<p class="entry-author">${{esc(author)}}</p>` : ""}}
             <h3 class="entry-name">${{esc(item.title)}}</h3>
             <p class="entry-blurb">${{esc(item.blurb || "")}}</p>
           </div>
@@ -1139,9 +1158,9 @@ def render_hub(entries: list[dict]) -> str:
           if (!res.ok) return;
           const items = await res.json();
           for (const item of items) {{
-            ensureOption(scriptEl, item.script || "玩家创作");
-            ensureOption(meEl, item.me);
-            ensureOption(targetEl, item.target);
+            const script = item.script || "玩家创作";
+            ensureOption(scriptEl, script);
+            mergeFacet(script, item.me, item.target);
             const card = createUserCard(item);
             entriesEl.appendChild(card);
             entries.push(card);
@@ -1149,26 +1168,42 @@ def render_hub(entries: list[dict]) -> str:
         }} catch {{
           /* ignore */
         }}
+        syncFilterOptions(true);
         applyFilters();
       }}
 
       const initial = readParams();
       setSelect(scriptEl, initial.script);
+      syncFilterOptions(false);
       setSelect(meEl, initial.me);
+      rebuildSelect(targetEl, getTargetOptions(scriptEl.value, meEl.value), false);
       setSelect(targetEl, initial.target);
 
-      scriptEl.addEventListener("change", applyFilters);
-      meEl.addEventListener("change", applyFilters);
+      scriptEl.addEventListener("change", () => {{
+        syncFilterOptions(true);
+        applyFilters();
+      }});
+      meEl.addEventListener("change", () => {{
+        rebuildSelect(targetEl, getTargetOptions(scriptEl.value, meEl.value), true);
+        applyFilters();
+      }});
       targetEl.addEventListener("change", applyFilters);
       resetEl.addEventListener("click", () => {{
         scriptEl.value = "";
         meEl.value = "";
         targetEl.value = "";
+        syncFilterOptions(false);
         applyFilters();
       }});
 
       applyFilters();
       loadPublicEntries();
+      fetch("/api/view", {{
+        method: "POST",
+        headers: {{ "Content-Type": "application/json" }},
+        body: JSON.stringify({{ page: "home" }}),
+        keepalive: true,
+      }}).catch(() => {{}});
     }})();
   </script>
 </body>
@@ -1193,13 +1228,12 @@ def main() -> None:
     for e in entries:
         write_letter_page(e)
 
-    hub = render_hub(entries)
+    hub = render_hub(entries, depth="")
+    (ROOT / "index.html").write_text(hub, encoding="utf-8")
+
     browse_dir = ROOT / "browse"
     browse_dir.mkdir(exist_ok=True)
-    (browse_dir / "index.html").write_text(hub, encoding="utf-8")
-
-    portal = render_portal(len(entries))
-    (ROOT / "index.html").write_text(portal, encoding="utf-8")
+    (browse_dir / "index.html").write_text(render_browse_redirect(), encoding="utf-8")
 
     slim = [
         {

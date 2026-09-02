@@ -1,4 +1,6 @@
 import { json, requireAdmin, summarizeShare } from "../../../_lib/admin.js";
+import { deleteImages } from "../../../_lib/images.js";
+import { audioStorageKey } from "../../../_lib/music.js";
 
 const catalogKey = "public:catalog";
 
@@ -29,7 +31,7 @@ export async function onRequestGet(context) {
   }
 
   const origin = new URL(request.url).origin;
-  const summary = summarizeShare(params.id, data, origin);
+  const summary = await summarizeShare(params.id, data, origin, env);
   const imgs = Array.isArray(data.imgs) ? data.imgs : data.img ? [data.img] : [];
 
   return json({
@@ -47,6 +49,8 @@ export async function onRequestDelete(context) {
 
   const { env, params } = context;
   await env.SHARES.delete(params.id);
+  await env.SHARES.delete(audioStorageKey(params.id));
+  await deleteImages(env, params.id);
   await removeFromCatalog(env, params.id);
   return json({ ok: true, id: params.id });
 }

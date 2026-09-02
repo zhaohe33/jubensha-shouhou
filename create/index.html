@@ -7,7 +7,7 @@
   <meta name="description" content="上传文字与图片，生成可分享的剧本杀售后网页，适用于微信、抖音、小红书。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=ZCOOL+XiaoWei&family=Zhi+Mang+Xing&family=Long+Cang&family=Liu+Jian+Mao+Cao&display=swap" rel="stylesheet" />
   <style>
     :root {
       --ink: #100e0c;
@@ -89,6 +89,19 @@
     }
     .upload:hover, .upload.drag { border-color: rgba(239, 230, 214, 0.5); }
     .upload p { font-size: 0.8rem; color: var(--fade); letter-spacing: 0.08em; }
+    .audio-preview {
+      margin-top: 0.65rem; padding: 0.65rem 0.75rem;
+      border: 1px solid var(--line); background: rgba(0,0,0,0.2);
+    }
+    .audio-preview audio { width: 100%; margin-top: 0.35rem; }
+    .audio-preview.hidden { display: none; }
+    .audio-actions { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.55rem; }
+    .preview-music {
+      margin-top: 0.85rem; padding: 0.55rem 0.7rem;
+      border: 1px dashed var(--line); font-size: 0.76rem;
+      letter-spacing: 0.08em; color: var(--fade);
+    }
+    .preview-music.hidden { display: none; }
     .img-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -103,11 +116,19 @@
       background: rgba(0, 0, 0, 0.25);
     }
     .img-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .img-item button {
+    .img-item button.img-remove {
       position: absolute; top: 4px; right: 4px;
       width: 22px; height: 22px; border: none; border-radius: 50%;
       background: rgba(0, 0, 0, 0.65); color: var(--paper);
       cursor: pointer; font-size: 14px; line-height: 1;
+    }
+    .img-item button.img-insert {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      width: 100%; height: auto; border: none; border-radius: 0;
+      padding: 0.35rem 0.25rem;
+      background: rgba(0, 0, 0, 0.72); color: var(--paper);
+      cursor: pointer; font-family: inherit; font-size: 0.68rem;
+      letter-spacing: 0.08em;
     }
     .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
     .btn {
@@ -135,6 +156,19 @@
     .public-toggle small {
       display: block; font-size: 0.72rem; color: var(--fade); line-height: 1.5; letter-spacing: 0.04em;
     }
+    .edit-load {
+      margin-bottom: 1rem; padding: 0.85rem; border: 1px solid var(--line);
+      background: rgba(0,0,0,0.2);
+    }
+    .edit-load summary {
+      cursor: pointer; font-size: 0.82rem; letter-spacing: 0.14em; color: var(--paper-soft);
+    }
+    .edit-mode-banner {
+      display: none; margin-bottom: 0.75rem; padding: 0.55rem 0.75rem;
+      border: 1px solid rgba(156, 47, 42, 0.45); background: rgba(156, 47, 42, 0.15);
+      font-size: 0.78rem; letter-spacing: 0.1em; color: var(--paper-soft);
+    }
+    .edit-mode-banner.visible { display: block; }
     .theme-presets {
       display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 0.65rem;
     }
@@ -167,31 +201,20 @@
     .preview .meta { font-size: 0.72rem; letter-spacing: 0.24em; color: rgba(156, 47, 42, 0.85); margin-bottom: 0.5rem; }
     .preview h3 {
       font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(1.8rem, 6vw, 2.4rem); letter-spacing: 0.14em; margin-bottom: 0.25rem;
+      letter-spacing: 0.14em; margin-bottom: 0.25rem;
     }
     .preview .sub { color: var(--paper-soft); font-size: 0.85rem; letter-spacing: 0.1em; margin-bottom: 1rem; }
     .preview .line { width: 2rem; height: 1px; background: var(--seal); margin-bottom: 1rem; }
-    .preview .prose { white-space: pre-wrap; letter-spacing: 0.04em; line-height: 1.9; font-size: 0.95rem; }
-    .preview-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) min(140px, 38%);
-      gap: 0.85rem;
-      align-items: start;
+    .preview .prose { letter-spacing: 0.04em; line-height: 1.9; font-size: var(--pv-body-size, 0.95rem); }
+    .preview h3 { font-size: var(--pv-title-size, clamp(1.8rem, 6vw, 2.4rem)); }
+    .preview .prose p { margin-bottom: 0.85rem; }
+    .preview .prose .inline-fig { margin: 0.75rem 0 1rem; }
+    .preview .prose .inline-fig img {
+      width: 100%; display: block; border: 1px solid var(--line); object-fit: cover;
     }
-    .preview-side {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+    .preview .prose .letter-gallery {
+      margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;
     }
-    .preview-side img {
-      width: 100%;
-      border: 1px solid var(--line);
-      object-fit: cover;
-      aspect-ratio: 3 / 4;
-      display: block;
-    }
-    .preview-side:empty { display: none; }
-    .preview-layout.no-images { grid-template-columns: 1fr; }
     .modal {
       position: fixed; inset: 0; z-index: 50; display: none;
       align-items: center; justify-content: center; padding: 1rem;
@@ -214,9 +237,6 @@
       .layout { grid-template-columns: 1fr; }
       .row { grid-template-columns: 1fr; }
       .img-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .preview-layout { grid-template-columns: 1fr; }
-      .preview-side { flex-direction: row; overflow-x: auto; }
-      .preview-side img { width: 38vw; max-width: 140px; flex: 0 0 auto; }
     }
   </style>
 </head>
@@ -228,7 +248,6 @@
       <p class="top-lead">上传文字与配图，生成可分享链接</p>
       <nav class="site-nav" aria-label="站点导航">
         <a class="site-nav__link" href="../index.html">首页</a>
-        <a class="site-nav__link" href="../browse/">公开售后</a>
         <a class="site-nav__link is-active" href="./">创作售后</a>
       </nav>
     </header>
@@ -236,19 +255,43 @@
     <div class="layout">
       <section class="panel editor">
         <h2>编辑</h2>
+        <details class="edit-load">
+          <summary>已有售后？用 ID + 编辑码载入修改</summary>
+          <div class="row" style="margin-top:0.65rem">
+            <div class="field" style="margin-bottom:0">
+              <label for="editId">售后 ID</label>
+              <input id="editId" type="text" placeholder="如 abc12xyz" maxlength="12" />
+            </div>
+            <div class="field" style="margin-bottom:0">
+              <label for="editToken">编辑码</label>
+              <input id="editToken" type="password" placeholder="生成时保存的编辑码" />
+            </div>
+          </div>
+          <div class="actions" style="margin-top:0.65rem">
+            <button class="btn" type="button" id="btnLoadEdit">载入编辑</button>
+          </div>
+          <p class="hint" id="editLoadHint"></p>
+        </details>
+        <p class="edit-mode-banner" id="editBanner">正在编辑已有售后，保存后链接不变。</p>
         <div class="row">
           <div class="field">
             <label for="script">剧本名</label>
             <input id="script" type="text" placeholder="如：青白" maxlength="60" />
           </div>
           <div class="field">
+            <label for="author">作者</label>
+            <input id="author" type="text" placeholder="可选，留空不显示" maxlength="40" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="field">
             <label for="me">我打的角色</label>
             <input id="me" type="text" placeholder="如：苏无恙" maxlength="40" />
           </div>
-        </div>
-        <div class="field">
-          <label for="target">写给谁</label>
-          <input id="target" type="text" placeholder="如：阿喜" maxlength="40" />
+          <div class="field">
+            <label for="target">写给谁</label>
+            <input id="target" type="text" placeholder="如：阿喜" maxlength="40" />
+          </div>
         </div>
         <div class="field">
           <label for="title">标题</label>
@@ -256,7 +299,7 @@
         </div>
         <div class="field">
           <label for="content">正文</label>
-          <textarea id="content" placeholder="在这里写下你想对 TA 说的话……&#10;&#10;段落之间空一行即可分段。"></textarea>
+          <textarea id="content" placeholder="在这里写下你想对 TA 说的话……&#10;&#10;段落之间空一行即可分段。&#10;在需要插图的位置写 [图1]、[图2]（对应上传顺序），或点击图片上的「插入正文」。"></textarea>
         </div>
         <div class="field">
           <label>页面样式</label>
@@ -275,13 +318,29 @@
               <input id="accentColor" type="color" value="#9c2f2a" />
             </div>
           </div>
-          <div class="field" style="margin-top:0.65rem;margin-bottom:0">
-            <label for="fontSelect">正文字体</label>
-            <select id="fontSelect">
-              <option value="serif">宋体</option>
-              <option value="kai">楷体</option>
-              <option value="song">明朝</option>
-            </select>
+          <div class="row" style="margin-top:0.65rem;margin-bottom:0">
+            <div class="field" style="margin-bottom:0">
+              <label for="fontSelect">正文字体</label>
+              <select id="fontSelect">
+                <option value="serif">宋体</option>
+                <option value="kai">楷体</option>
+                <option value="song">明朝</option>
+                <option value="sans">黑体</option>
+                <option value="hand">手写</option>
+                <option value="cursive">行草</option>
+                <option value="brush">毛笔</option>
+                <option value="grass">狂草</option>
+              </select>
+            </div>
+            <div class="field" style="margin-bottom:0">
+              <label for="fontSizeSelect">正文字号</label>
+              <select id="fontSizeSelect">
+                <option value="sm">偏小</option>
+                <option value="md" selected>标准</option>
+                <option value="lg">偏大</option>
+                <option value="xl">很大</option>
+              </select>
+            </div>
           </div>
         </div>
         <div class="field">
@@ -291,7 +350,24 @@
             <input id="fileInput" type="file" accept="image/*" multiple hidden />
           </div>
           <div class="img-grid" id="imgGrid"></div>
-          <p class="hint" id="imgHint">图片会显示在正文右侧，多张可上下排列。</p>
+          <p class="hint" id="imgHint">上传后会自动压缩（多张图会压得更小）。在正文中写 [图1]、[图2] 可插入对应位置；未插入的显示在正文下方。</p>
+        </div>
+        <div class="field">
+          <label for="musicUrl">配乐（可选）</label>
+          <input id="musicUrl" type="url" placeholder="YouTube / B站（含 b23.tv 短链）/ mp3 直链" />
+          <p class="hint">手机微信内 B 站链接可能无法出声，建议直接上传 mp3/m4a 配乐</p>
+          <div class="upload" id="audioUploadZone" style="margin-top:0.65rem">
+            <p>或点击上传短 BGM（mp3 / m4a，建议 60 秒内）</p>
+            <input id="audioInput" type="file" accept="audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/*" hidden />
+          </div>
+          <div class="audio-preview hidden" id="audioPreview">
+            <p class="hint" id="audioPreviewLabel">已选择配乐</p>
+            <audio id="audioPlayer" controls preload="metadata"></audio>
+            <div class="audio-actions">
+              <button class="btn" type="button" id="btnClearAudio">清除配乐</button>
+            </div>
+          </div>
+          <p class="hint" id="audioHint">上传的 BGM 优先播放。链接支持：mp3/m4a 直链、YouTube、B 站；网易云/QQ 音乐的分享页链接无法嵌入，请改用上传或找 mp3 直链。</p>
         </div>
         <div class="field">
           <label class="public-toggle">
@@ -316,12 +392,8 @@
         <h3 id="pvTitle">致……</h3>
         <p class="sub" id="pvSub">我 → TA</p>
         <div class="line" aria-hidden="true"></div>
-        <div class="preview-layout" id="pvLayout">
-          <div class="preview-main">
-            <div class="prose" id="pvContent">在左侧输入正文后，这里会实时预览。</div>
-          </div>
-          <div class="preview-side" id="pvSide"></div>
-        </div>
+        <div class="prose" id="pvContent">在左侧输入正文后，这里会实时预览。</div>
+        <p class="preview-music hidden" id="pvMusic"></p>
         </div>
       </section>
     </div>
@@ -329,16 +401,19 @@
 
   <div class="modal" id="shareModal" aria-hidden="true">
     <div class="modal-card">
-      <h3>分享链接已生成</h3>
+      <h3 id="shareModalTitle">分享链接已生成</h3>
       <input id="shareUrl" readonly />
+      <label class="hint" for="shareEditToken" style="display:block;margin-bottom:0.35rem">编辑码（请妥善保存，用于日后修改）</label>
+      <input id="shareEditToken" readonly />
       <img id="qrImg" alt="二维码" width="160" height="160" />
       <div class="share-tips">
-        <strong>微信</strong>：复制链接发好友，或长按保存二维码扫码打开<br />
-        <strong>抖音 / 小红书</strong>：复制链接粘贴到简介或评论区；配图会作为链接预览卡片
+        <strong>编辑码</strong>：丢失后无法在线修改此售后（后台也无法查看编辑码）<br />
+        <strong>微信 / 抖音 / 小红书</strong>：点击「分享」发给好友，或长按保存二维码扫码打开
       </div>
       <div class="actions">
+        <button class="btn" type="button" id="btnCopyEdit">复制编辑码</button>
         <button class="btn primary" type="button" id="btnCopy">复制链接</button>
-        <button class="btn" type="button" id="btnNativeShare">系统分享</button>
+        <button class="btn" type="button" id="btnNativeShare">分享</button>
         <button class="btn" type="button" id="btnClose">关闭</button>
       </div>
       <p class="hint" id="modalHint"></p>
@@ -348,22 +423,37 @@
   <script>
     const $ = (id) => document.getElementById(id);
     const els = {
-      script: $("script"), me: $("me"), target: $("target"), title: $("title"), content: $("content"),
+      script: $("script"), author: $("author"), me: $("me"), target: $("target"), title: $("title"), content: $("content"),
       uploadZone: $("uploadZone"), fileInput: $("fileInput"), imgGrid: $("imgGrid"),
       imgHint: $("imgHint"), statusHint: $("statusHint"),
       pvMeta: $("pvMeta"), pvTitle: $("pvTitle"), pvSub: $("pvSub"), pvContent: $("pvContent"),
-      pvSide: $("pvSide"), pvLayout: $("pvLayout"), previewStage: $("previewStage"),
+      pvMusic: $("pvMusic"), previewStage: $("previewStage"),
+      musicUrl: $("musicUrl"), audioUploadZone: $("audioUploadZone"), audioInput: $("audioInput"),
+      audioPreview: $("audioPreview"), audioPreviewLabel: $("audioPreviewLabel"),
+      audioPlayer: $("audioPlayer"), btnClearAudio: $("btnClearAudio"), audioHint: $("audioHint"),
       isPublic: $("isPublic"),
       themePresets: $("themePresets"), bgColor: $("bgColor"), textColor: $("textColor"),
-      accentColor: $("accentColor"), fontSelect: $("fontSelect"),
-      shareModal: $("shareModal"), shareUrl: $("shareUrl"), qrImg: $("qrImg"), modalHint: $("modalHint"),
-      btnPreview: $("btnPreview"), btnShare: $("btnShare"), btnCopy: $("btnCopy"), btnNativeShare: $("btnNativeShare"), btnClose: $("btnClose"),
+      accentColor: $("accentColor"), fontSelect: $("fontSelect"), fontSizeSelect: $("fontSizeSelect"),
+      editId: $("editId"), editToken: $("editToken"), btnLoadEdit: $("btnLoadEdit"),
+      editLoadHint: $("editLoadHint"), editBanner: $("editBanner"),
+      shareModal: $("shareModal"), shareModalTitle: $("shareModalTitle"),
+      shareUrl: $("shareUrl"), shareEditToken: $("shareEditToken"), qrImg: $("qrImg"), modalHint: $("modalHint"),
+      btnPreview: $("btnPreview"), btnShare: $("btnShare"), btnCopy: $("btnCopy"),
+      btnCopyEdit: $("btnCopyEdit"), btnNativeShare: $("btnNativeShare"), btnClose: $("btnClose"),
     };
 
     const MAX_IMAGES = 8;
+    const MAX_AUDIO = 400000;
+    const EDIT_STORE_PREFIX = "shouhou_edit_";
     let images = [];
+    let uploadedAudio = "";
+    let remoteHasBgm = false;
+    let removeBgm = false;
     let lastShareUrl = "";
+    let lastEditToken = "";
     let activePreset = "ink";
+    let editingId = "";
+    let editingToken = "";
 
     const THEME_PRESETS = {
       ink: { label: "墨信", bg: "#100e0c", text: "#efe6d6", textSoft: "#cfc3ae", accent: "#9c2f2a" },
@@ -371,12 +461,29 @@
       night: { label: "夜雨", bg: "#0b1220", text: "#d9e4f5", textSoft: "#9eb0c9", accent: "#5b8def" },
       rose: { label: "落樱", bg: "#1a1014", text: "#f5e3e8", textSoft: "#c9a3ad", accent: "#d45d79" },
       bamboo: { label: "青松", bg: "#0f1612", text: "#e2efe6", textSoft: "#a8bfb0", accent: "#4f8a6b" },
+      candle: { label: "烛夜", bg: "#1a1408", text: "#f0e4cc", textSoft: "#c4b08a", accent: "#c9922e" },
+      mist: { label: "紫霭", bg: "#14101c", text: "#ebe4f8", textSoft: "#b5a8cc", accent: "#8b6cc4" },
+      snow: { label: "雪笺", bg: "#e8eef4", text: "#1e2832", textSoft: "#4a5a6a", accent: "#3d6d8c" },
+      tide: { label: "海潮", bg: "#0a1a1e", text: "#d8f0f0", textSoft: "#8eb8b8", accent: "#2a9d8f" },
+      wine: { label: "醇酒", bg: "#180c10", text: "#f2e0e4", textSoft: "#c49aa6", accent: "#9e3b4f" },
     };
 
     const FONT_STACKS = {
       serif: '"Noto Serif SC", "Songti SC", serif',
       kai: '"ZCOOL XiaoWei", "KaiTi", serif',
       song: '"Songti SC", "Noto Serif SC", serif',
+      sans: '"Noto Sans SC", "PingFang SC", sans-serif',
+      hand: '"Zhi Mang Xing", cursive',
+      cursive: '"Long Cang", cursive',
+      brush: '"Ma Shan Zheng", cursive',
+      grass: '"Liu Jian Mao Cao", cursive',
+    };
+
+    const FONT_SIZE_VARS = {
+      sm: { body: "0.88rem", title: "clamp(1.55rem, 5.5vw, 2rem)" },
+      md: { body: "0.95rem", title: "clamp(1.8rem, 6vw, 2.4rem)" },
+      lg: { body: "1.08rem", title: "clamp(2rem, 6.5vw, 2.7rem)" },
+      xl: { body: "1.22rem", title: "clamp(2.15rem, 7vw, 3rem)" },
     };
 
     function getThemePayload() {
@@ -392,6 +499,7 @@
         textSoft: usingPreset ? p.textSoft : els.textColor.value,
         accent: els.accentColor.value,
         font: els.fontSelect.value,
+        size: els.fontSizeSelect.value,
       };
     }
 
@@ -423,6 +531,158 @@
       stage.style.setProperty("--pv-text-soft", payload.textSoft);
       stage.style.setProperty("--pv-accent", payload.accent);
       stage.style.setProperty("--pv-font", FONT_STACKS[payload.font] || FONT_STACKS.serif);
+      const sizeVars = FONT_SIZE_VARS[payload.size] || FONT_SIZE_VARS.md;
+      stage.style.setProperty("--pv-body-size", sizeVars.body);
+      stage.style.setProperty("--pv-title-size", sizeVars.title);
+    }
+
+    function setEditMode(id, token) {
+      editingId = id || "";
+      editingToken = token || "";
+      els.editBanner.classList.toggle("visible", Boolean(editingId));
+      els.btnShare.textContent = editingId ? "保存修改" : "生成分享链接";
+      if (editingId) {
+        els.editId.value = editingId;
+        els.editToken.value = editingToken;
+      }
+    }
+
+    function applyThemeFromPayload(theme) {
+      if (!theme) {
+        applyPreset("ink");
+        return;
+      }
+      const key = THEME_PRESETS[theme.preset] ? theme.preset : "ink";
+      activePreset = key;
+      els.bgColor.value = theme.bg || THEME_PRESETS[key].bg;
+      els.textColor.value = theme.text || THEME_PRESETS[key].text;
+      els.accentColor.value = theme.accent || THEME_PRESETS[key].accent;
+      els.fontSelect.value = theme.font || "serif";
+      els.fontSizeSelect.value = FONT_SIZE_VARS[theme.size] ? theme.size : "md";
+      renderPresetButtons();
+      applyThemeStyles();
+    }
+
+    function fillFormFromData(data) {
+      els.script.value = data.script || "";
+      els.author.value = data.author || "";
+      els.target.value = data.target || "";
+      els.me.value = data.me || "";
+      els.title.value = data.title || "";
+      els.content.value = data.content || "";
+      els.isPublic.checked = Boolean(data.public);
+      els.musicUrl.value = data.musicUrl || "";
+      images = Array.isArray(data.images) ? [...data.images] : [];
+      uploadedAudio = "";
+      remoteHasBgm = Boolean(data.hasBgm);
+      removeBgm = false;
+      applyThemeFromPayload(data.theme);
+      updateAudioPreview();
+      updatePreview();
+    }
+
+    function clearMusic() {
+      uploadedAudio = "";
+      remoteHasBgm = false;
+      removeBgm = true;
+      els.musicUrl.value = "";
+      els.audioInput.value = "";
+      updateAudioPreview();
+      updatePreview();
+    }
+
+    function updateAudioPreview() {
+      const hasUpload = Boolean(uploadedAudio);
+      const hasRemote = remoteHasBgm && editingId && !removeBgm;
+      const hasUrl = Boolean(els.musicUrl.value.trim());
+      const active = hasUpload || hasRemote || (hasUrl && !removeBgm);
+
+      els.audioPreview.classList.toggle("hidden", !active);
+      if (!active) {
+        els.audioPlayer.removeAttribute("src");
+        return;
+      }
+
+      if (hasUpload) {
+        els.audioPreviewLabel.textContent = "已上传配乐（保存后生效）";
+        els.audioPlayer.src = uploadedAudio;
+      } else if (hasRemote) {
+        els.audioPreviewLabel.textContent = "当前已保存的配乐";
+        els.audioPlayer.src = `/api/audio/${encodeURIComponent(editingId)}`;
+      } else {
+        els.audioPreviewLabel.textContent = "将使用音乐链接播放";
+        els.audioPlayer.removeAttribute("src");
+      }
+    }
+
+    function updateMusicPreview() {
+      const hasUpload = Boolean(uploadedAudio) || (remoteHasBgm && !removeBgm);
+      const hasUrl = Boolean(els.musicUrl.value.trim()) && !removeBgm;
+      if (!hasUpload && !hasUrl) {
+        els.pvMusic.classList.add("hidden");
+        els.pvMusic.textContent = "";
+        return;
+      }
+      els.pvMusic.classList.remove("hidden");
+      if (hasUpload) {
+        els.pvMusic.textContent = "♪ 预览：已配置上传配乐";
+      } else {
+        els.pvMusic.textContent = "♪ 预览：已配置音乐链接";
+      }
+    }
+
+    async function handleAudioFile(file) {
+      if (!file || !file.type.startsWith("audio/")) {
+        els.audioHint.textContent = "请选择音频文件";
+        els.audioHint.className = "hint err";
+        return;
+      }
+      if (file.size > 3 * 1024 * 1024) {
+        els.audioHint.textContent = "音频文件过大，请剪短到约 60 秒内，或改用音乐链接";
+        els.audioHint.className = "hint err";
+        return;
+      }
+
+      els.audioHint.textContent = "正在读取音频…";
+      els.audioHint.className = "hint";
+
+      try {
+        const dataUrl = await new Promise((res, rej) => {
+          const reader = new FileReader();
+          reader.onload = (e) => res(e.target.result);
+          reader.onerror = () => rej(new Error("读取失败"));
+          reader.readAsDataURL(file);
+        });
+        if (String(dataUrl).length > MAX_AUDIO) {
+          throw new Error("音频过大，请缩短时长或改用音乐链接");
+        }
+        uploadedAudio = dataUrl;
+        remoteHasBgm = false;
+        removeBgm = false;
+        updateAudioPreview();
+        updatePreview();
+        els.audioHint.textContent = "✓ 配乐已添加";
+        els.audioHint.className = "hint ok";
+      } catch (err) {
+        els.audioHint.textContent = err.message || "音频处理失败";
+        els.audioHint.className = "hint err";
+      }
+    }
+
+    async function loadForEdit(id, token) {
+      const res = await fetch(`/api/edit/${encodeURIComponent(id)}`, {
+        headers: { "X-Edit-Token": token },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "载入失败");
+      fillFormFromData(data);
+      setEditMode(id, token);
+      localStorage.setItem(EDIT_STORE_PREFIX + id, token);
+      els.editLoadHint.textContent = "✓ 已载入，修改后点击「保存修改」";
+      els.editLoadHint.className = "hint ok";
+      els.statusHint.textContent = `正在编辑 ${id}`;
+      els.statusHint.className = "hint ok";
+      lastShareUrl = `${location.origin}/p/${id}`;
     }
 
     function getTitle() {
@@ -432,16 +692,124 @@
       return target ? `致${target}` : "剧本杀售后";
     }
 
+    function hasInlineImageMarkers(content) {
+      return /\[图\s*\d+\s*\]/.test(String(content || ""));
+    }
+
+    function getUsedImageIndices(content) {
+      const used = new Set();
+      for (const m of String(content || "").matchAll(/\[图\s*(\d+)\s*\]/g)) {
+        const n = Number(m[1]);
+        if (n >= 1) used.add(n - 1);
+      }
+      return used;
+    }
+
+    function parseMarkerIndex(part) {
+      const m = String(part).match(/^\[图\s*(\d+)\s*\]$/);
+      return m ? Number(m[1]) - 1 : -1;
+    }
+
+    function escHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function renderTextSegment(text) {
+      const trimmed = String(text).replace(/\r\n/g, "\n").trim();
+      if (!trimmed) return "";
+      return trimmed
+        .split(/\n\s*\n/)
+        .map((block) => {
+          const lines = block
+            .split("\n")
+            .map((l) => l.trim())
+            .filter(Boolean)
+            .map((l) => escHtml(l))
+            .join("<br />");
+          return lines ? `<p>${lines}</p>` : "";
+        })
+        .join("");
+    }
+
+    function renderBottomGallery(indices) {
+      if (!indices.length) return "";
+      const figs = indices
+        .map((i) => `<figure class="inline-fig"><img src="${images[i]}" alt="" /></figure>`)
+        .join("");
+      return `<div class="letter-gallery">${figs}</div>`;
+    }
+
+    function renderPreviewContent(content, bottomIndices) {
+      const text = String(content || "").replace(/\r\n/g, "\n").trim();
+      if (!text && !bottomIndices.length) return "<p>（暂无文字）</p>";
+
+      let html = "";
+      if (text) {
+        const parts = text.split(/(\[图\s*\d+\s*\])/);
+        for (const part of parts) {
+          const idx = parseMarkerIndex(part);
+          if (idx >= 0) {
+            if (idx < images.length) {
+              html += `<figure class="inline-fig"><img src="${images[idx]}" alt="" /></figure>`;
+            }
+            continue;
+          }
+          html += renderTextSegment(part);
+        }
+      }
+      if (!html && !bottomIndices.length) html = "<p>（暂无文字）</p>";
+      html += renderBottomGallery(bottomIndices);
+      return html;
+    }
+
+    function renumberImageMarkers(content, removedIndex) {
+      const removedNum = removedIndex + 1;
+      let next = String(content || "").replace(
+        new RegExp(`\\[图\\s*${removedNum}\\s*\\]`, "g"),
+        "",
+      );
+      next = next.replace(/\[图\s*(\d+)\s*\]/g, (_, n) => {
+        const num = Number(n);
+        return num > removedNum ? `[图${num - 1}]` : `[图${num}]`;
+      });
+      return next;
+    }
+
+    function insertImageMarker(index) {
+      const marker = `[图${index + 1}]`;
+      const ta = els.content;
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      const val = ta.value;
+      ta.value = val.slice(0, start) + marker + val.slice(end);
+      ta.focus();
+      ta.selectionStart = ta.selectionEnd = start + marker.length;
+      updatePreview();
+    }
+
     function updatePreview() {
       const script = els.script.value.trim();
+      const author = els.author.value.trim();
       const me = els.me.value.trim();
       const target = els.target.value.trim();
+      const content = els.content.value;
       els.pvMeta.textContent = [script, me].filter(Boolean).join(" · ") || "剧本杀售后";
       els.pvTitle.textContent = getTitle();
-      els.pvSub.textContent = me && target ? `${me} → ${target}` : (me || target || "");
-      els.pvContent.textContent = els.content.value.trim() || "（暂无文字）";
-      els.pvSide.innerHTML = images.map((src) => `<img src="${src}" alt="" />`).join("");
-      els.pvLayout.classList.toggle("no-images", images.length === 0);
+      els.pvSub.textContent = [
+        author ? `作者 ${author}` : "",
+        me && target ? `${me} → ${target}` : (me || target || ""),
+      ].filter(Boolean).join(" · ");
+      const used = getUsedImageIndices(content);
+      const hasMarkers = hasInlineImageMarkers(content);
+      const bottomIndices = hasMarkers
+        ? images.map((_, i) => i).filter((i) => !used.has(i))
+        : images.map((_, i) => i);
+      els.pvContent.innerHTML = renderPreviewContent(content, bottomIndices);
+      updateMusicPreview();
       renderImageGrid();
       applyThemeStyles();
     }
@@ -450,18 +818,27 @@
       els.imgGrid.innerHTML = images.map((src, i) => `
         <div class="img-item">
           <img src="${src}" alt="" />
-          <button type="button" data-index="${i}" aria-label="删除图片">×</button>
+          <button type="button" class="img-remove" data-index="${i}" aria-label="删除图片">×</button>
+          <button type="button" class="img-insert" data-index="${i}">插入正文 [图${i + 1}]</button>
         </div>`).join("");
-      els.imgGrid.querySelectorAll("button").forEach((btn) => {
+      els.imgGrid.querySelectorAll(".img-remove").forEach((btn) => {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
-          images.splice(Number(btn.dataset.index), 1);
+          const idx = Number(btn.dataset.index);
+          els.content.value = renumberImageMarkers(els.content.value, idx);
+          images.splice(idx, 1);
           updatePreview();
+        });
+      });
+      els.imgGrid.querySelectorAll(".img-insert").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          insertImageMarker(Number(btn.dataset.index));
         });
       });
     }
 
-    function compressImage(dataUrl, maxW = 1000, quality = 0.78) {
+    function compressImage(dataUrl, maxW = 900, maxH = 1200, quality = 0.76, maxBytes = 240000) {
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
@@ -471,21 +848,45 @@
             h = Math.round((h * maxW) / w);
             w = maxW;
           }
+          if (h > maxH) {
+            w = Math.round((w * maxH) / h);
+            h = maxH;
+          }
           const canvas = document.createElement("canvas");
           canvas.width = w;
           canvas.height = h;
           const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0, w, h);
-          let out = canvas.toDataURL("image/jpeg", quality);
-          if (out.length > 320000 && quality > 0.42) {
-            resolve(compressImage(dataUrl, maxW, quality - 0.1));
-            return;
+          const out = canvas.toDataURL("image/jpeg", quality);
+          if (out.length > maxBytes) {
+            if (quality > 0.4) {
+              resolve(compressImage(dataUrl, maxW, maxH, quality - 0.08, maxBytes));
+              return;
+            }
+            if (maxW > 520) {
+              resolve(compressImage(dataUrl, Math.round(maxW * 0.82), maxH, 0.72, maxBytes));
+              return;
+            }
           }
           resolve(out);
         };
         img.onerror = () => reject(new Error("图片处理失败"));
         img.src = dataUrl;
       });
+    }
+
+    async function rebalanceImages() {
+      if (!images.length) return;
+      const perImage = Math.max(120000, Math.floor(1800000 / images.length));
+      const next = [];
+      for (const img of images) {
+        if (typeof img === "string" && (img.startsWith("/api/img") || img.startsWith("http"))) {
+          next.push(img);
+          continue;
+        }
+        next.push(await compressImage(img, 900, 1200, 0.76, perImage));
+      }
+      images = next;
     }
 
     async function handleFiles(fileList) {
@@ -511,6 +912,7 @@
           });
           images.push(await compressImage(dataUrl));
         }
+        await rebalanceImages();
         els.imgHint.textContent = `✓ 已添加 ${images.length} 张图片`;
         els.imgHint.className = "hint ok";
         updatePreview();
@@ -529,9 +931,12 @@
       }
     }
 
-    function openShareModal(url) {
+    function openShareModal(url, editToken, isUpdate) {
       lastShareUrl = url;
+      lastEditToken = editToken || "";
       els.shareUrl.value = url;
+      els.shareEditToken.value = editToken || "（无）";
+      els.shareModalTitle.textContent = isUpdate ? "修改已保存" : "分享链接已生成";
       els.qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(url)}`;
       els.shareModal.classList.add("open");
       els.shareModal.setAttribute("aria-hidden", "false");
@@ -552,37 +957,69 @@
       }
 
       els.btnShare.disabled = true;
-      els.statusHint.textContent = "正在生成链接…";
+      els.statusHint.textContent = editingId ? "正在保存…" : "正在生成链接…";
       els.statusHint.className = "hint";
 
       try {
-        const res = await fetch("/api/share", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title,
-            content,
-            script: els.script.value.trim(),
-            me: els.me.value.trim(),
-            target: els.target.value.trim(),
-            images,
-            public: els.isPublic.checked,
-            theme: getThemePayload(),
-          }),
+        await rebalanceImages();
+      } catch (err) {
+        els.statusHint.textContent = err.message || "图片处理失败";
+        els.statusHint.className = "hint err";
+        els.btnShare.disabled = false;
+        return;
+      }
+
+      const payload = {
+        title,
+        content,
+        script: els.script.value.trim(),
+        author: els.author.value.trim(),
+        me: els.me.value.trim(),
+        target: els.target.value.trim(),
+        images,
+        musicUrl: els.musicUrl.value.trim(),
+        audio: uploadedAudio || undefined,
+        removeBgm,
+        public: els.isPublic.checked,
+        theme: getThemePayload(),
+      };
+
+      try {
+        const isEdit = Boolean(editingId && editingToken);
+        const res = await fetch(isEdit ? `/api/edit/${encodeURIComponent(editingId)}` : "/api/share", {
+          method: isEdit ? "PUT" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(isEdit ? { "X-Edit-Token": editingToken } : {}),
+          },
+          body: JSON.stringify(payload),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "生成失败");
+        if (!res.ok) throw new Error(data.error || (isEdit ? "保存失败" : "生成失败"));
 
-        openShareModal(data.url);
+        const id = data.id || editingId;
+        const token = data.editToken || editingToken;
+        if (id && token) {
+          localStorage.setItem(EDIT_STORE_PREFIX + id, token);
+          setEditMode(id, token);
+        }
+
+        openShareModal(data.url, token, isEdit);
         await copyText(data.url);
+        if (uploadedAudio || data.hasBgm) {
+          remoteHasBgm = Boolean(data.hasBgm);
+          uploadedAudio = "";
+          removeBgm = false;
+          updateAudioPreview();
+        }
         const pubNote = data.public ? "，并已公开到合集" : "（仅链接可访问）";
-        els.statusHint.textContent = `✓ 链接已复制${pubNote}`;
+        els.statusHint.textContent = isEdit ? `✓ 修改已保存${pubNote}` : `✓ 链接已复制${pubNote}`;
         els.statusHint.className = "hint ok";
-        els.modalHint.textContent = data.public
-          ? "链接已复制，该售后已出现在公开合集"
-          : "链接已复制，未公开到合集";
+        els.modalHint.textContent = isEdit
+          ? "修改已生效，链接不变"
+          : (data.public ? "链接已复制，请同时保存编辑码" : "链接已复制，请保存编辑码以便日后修改");
       } catch (err) {
-        els.statusHint.textContent = err.message || "生成失败，请稍后重试";
+        els.statusHint.textContent = err.message || "操作失败，请稍后重试";
         els.statusHint.className = "hint err";
       } finally {
         els.btnShare.disabled = false;
@@ -599,11 +1036,35 @@
       handleFiles(e.dataTransfer.files);
     });
 
+    els.audioUploadZone.addEventListener("click", () => els.audioInput.click());
+    els.audioInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) handleAudioFile(file);
+      e.target.value = "";
+    });
+    els.audioUploadZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      els.audioUploadZone.classList.add("drag");
+    });
+    els.audioUploadZone.addEventListener("dragleave", () => els.audioUploadZone.classList.remove("drag"));
+    els.audioUploadZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      els.audioUploadZone.classList.remove("drag");
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) handleAudioFile(file);
+    });
+    els.btnClearAudio.addEventListener("click", clearMusic);
+    els.musicUrl.addEventListener("input", () => {
+      if (els.musicUrl.value.trim()) removeBgm = false;
+      updateAudioPreview();
+      updateMusicPreview();
+    });
+
     ["input", "change"].forEach((evt) => {
-      [els.script, els.me, els.target, els.title, els.content].forEach((el) => {
+      [els.script, els.author, els.me, els.target, els.title, els.content].forEach((el) => {
         el.addEventListener(evt, updatePreview);
       });
-      [els.bgColor, els.textColor, els.accentColor, els.fontSelect].forEach((el) => {
+      [els.bgColor, els.textColor, els.accentColor, els.fontSelect, els.fontSizeSelect].forEach((el) => {
         el.addEventListener(evt, () => { applyThemeStyles(); });
       });
     });
@@ -612,13 +1073,52 @@
     applyPreset("ink");
     updatePreview();
 
+    (function initFromUrl() {
+      const params = new URLSearchParams(location.search);
+      const id = (params.get("id") || "").trim();
+      if (!id) return;
+      els.editId.value = id;
+      const saved = localStorage.getItem(EDIT_STORE_PREFIX + id);
+      if (saved) {
+        els.editToken.value = saved;
+        loadForEdit(id, saved).catch(() => {});
+      } else {
+        els.editLoadHint.textContent = "请输入编辑码后点击「载入编辑」";
+      }
+    })();
+
     els.btnPreview.addEventListener("click", updatePreview);
     els.btnShare.addEventListener("click", generateShareLink);
+    els.btnLoadEdit.addEventListener("click", async () => {
+      const id = els.editId.value.trim();
+      const token = els.editToken.value.trim();
+      if (!id || !token) {
+        els.editLoadHint.textContent = "请填写 ID 和编辑码";
+        els.editLoadHint.className = "hint err";
+        return;
+      }
+      els.btnLoadEdit.disabled = true;
+      els.editLoadHint.textContent = "载入中…";
+      try {
+        await loadForEdit(id, token);
+      } catch (err) {
+        els.editLoadHint.textContent = err.message;
+        els.editLoadHint.className = "hint err";
+      } finally {
+        els.btnLoadEdit.disabled = false;
+      }
+    });
     els.btnCopy.addEventListener("click", async () => {
       const url = lastShareUrl || els.shareUrl.value;
       if (!url) return;
       await copyText(url);
       els.modalHint.textContent = "已复制";
+    });
+    els.btnCopyEdit.addEventListener("click", async () => {
+      const token = lastEditToken || els.shareEditToken.value;
+      if (!token || token === "（无）") return;
+      await copyText(token);
+      els.modalHint.textContent = "编辑码已复制";
     });
     els.btnNativeShare.addEventListener("click", async () => {
       const url = lastShareUrl || els.shareUrl.value;

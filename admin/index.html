@@ -53,7 +53,7 @@
     }
     .toolbar .spacer { flex: 1; }
     .stats {
-      display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.6rem;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.6rem;
       margin-top: 1rem;
     }
     .stat {
@@ -76,6 +76,7 @@
     }
     .tag.pub { color: var(--ok); border-color: rgba(111,191,138,0.35); }
     .tag.priv { color: var(--muted); }
+    .tag.static { color: #8eb4ff; border-color: rgba(142,180,255,0.35); }
     a.link { color: #8eb4ff; text-decoration: none; }
     a.link:hover { text-decoration: underline; }
     .hidden { display: none !important; }
@@ -145,9 +146,11 @@
               <th>标题</th>
               <th>剧本</th>
               <th>作者</th>
+              <th>角色</th>
               <th>对象</th>
               <th>公开</th>
               <th>图</th>
+              <th>阅读</th>
               <th>主题</th>
               <th>操作</th>
             </tr>
@@ -181,6 +184,7 @@
     let token = sessionStorage.getItem(TOKEN_KEY) || "";
     let allItems = [];
     let currentId = "";
+    const pendingDeletes = new Set();
 
     function headers() {
       return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
@@ -192,6 +196,9 @@
       if (res.status === 401) {
         logout();
         throw new Error("令牌无效，请重新登录");
+      }
+      if (res.status === 404) {
+        throw new Error("后台 API 不可用。请从 Cloudflare 地址登录：https://jubensha-shouhou.pages.dev/admin/（GitHub Pages 无后台接口）");
       }
       if (!res.ok) throw new Error(data.error || `请求失败 (${res.status})`);
       return data;
@@ -235,6 +242,10 @@
     async function loadStats() {
       const s = await api("/api/admin/stats");
       $("stats").innerHTML = `
+        <div class="stat"><b>${s.siteViews ?? 0}</b><span>网站访问</span></div>
+        <div class="stat"><b>${s.totalReads ?? 0}</b><span>总阅读</span></div>
+        <div class="stat"><b>${s.shareReads ?? 0}</b><span>创作售后</span></div>
+        <div class="stat"><b>${s.staticReads ?? 0}</b><span>静态售后</span></div>
         <div class="stat"><b>${s.total}</b><span>总售后</span></div>
         <div class="stat"><b>${s.publicCount}</b><span>公开</span></div>
         <div class="stat"><b>${s.privateCount}</b><span>私密</span></div>
@@ -249,7 +260,7 @@
         if (pub === "1" && !item.public) return false;
         if (pub === "0" && item.public) return false;
         if (!q) return true;
-        const hay = [item.id, item.title, item.script, item.me, item.target, item.blurb].join(" ").toLowerCase();
+        const hay = [item.id, item.title, item.script, item.author, item.me, item.target, item.blurb].join(" ").toLowerCase();
         return hay.includes(q);
       });
     }
@@ -261,10 +272,12 @@
           <td>${fmtTime(item.created)}</td>
           <td>${esc(item.title)}<br><span class="sub" style="font-size:0.72rem;color:var(--muted)">${esc(item.id)}</span></td>
           <td>${esc(item.script || "-")}</td>
+          <td>${esc(item.author || "-")}</td>
           <td>${esc(item.me || "-")}</td>
           <td>${esc(item.target || "-")}</td>
-          <td><span class="tag ${item.public ? "pub" : "priv"}">${item.public ? "公开" : "私密"}</span></td>
+          <td><span class="tag ${item.static ? "static" : (item.public ? "pub" : "priv")}">${item.static ? "静态" : (item.public ? "公开" : "私密")}</span></td>
           <td>${item.imageCount}</td>
+          <td>${item.views ?? 0}</td>
           <td>${esc(item.theme || "-")}</td>
           <td>
             <button class="btn" data-id="${esc(item.id)}" data-action="detail">详情</button>
@@ -281,9 +294,42 @@
       return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
     }
 
+    function mergeItems(staticItems, userItems) {
+      const seen = new Set();
+      return [...staticItems, ...userItems].filter((item) => {
+        if (!item?.id || pendingDeletes.has(item.id)) return false;
+        if (seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      });
+    }
+
     async function loadAll() {
-      const data = await api("/api/admin/shares");
-      allItems = data.items || [];
+      const [data, catalog, views] = await Promise.all([
+        api("/api/admin/shares"),
+        fetch("/catalog.json").then((r) => r.json()).catch(() => []),
+        api("/api/admin/views").catch(() => ({ staticViews: {} })),
+      ]);
+      const staticViews = views.staticViews || {};
+      const staticItems = (catalog || []).map((c) => {
+        const path = String(c.href || "").replace(/\/index\.html$/i, "");
+        return {
+          id: path,
+          title: c.title || "",
+          script: c.script || "",
+          author: "Yolo",
+          me: c.me || "",
+          target: c.target || "",
+          public: true,
+          static: true,
+          imageCount: "-",
+          views: staticViews[path] || 0,
+          theme: "-",
+          created: null,
+          url: `/${c.href}`,
+        };
+      });
+      allItems = mergeItems(staticItems, data.items || []);
       await loadStats();
       renderTable();
     }
@@ -291,6 +337,23 @@
     async function openDetail(id) {
       currentId = id;
       $("detailErr").textContent = "";
+      const staticItem = allItems.find((item) => item.id === id && item.static);
+      if (staticItem) {
+        $("detailTitle").textContent = staticItem.title || id;
+        $("detailGrid").innerHTML = `
+          <div><dt>类型</dt><dd>静态售后</dd></div>
+          <div><dt>剧本</dt><dd>${esc(staticItem.script || "-")}</dd></div>
+          <div><dt>角色 → 对象</dt><dd>${esc(staticItem.me || "-")} → ${esc(staticItem.target || "-")}</dd></div>
+          <div><dt>阅读次数</dt><dd>${staticItem.views ?? 0}</dd></div>
+          <div><dt>链接</dt><dd><a class="link" href="${esc(staticItem.url)}" target="_blank">${esc(staticItem.url)}</a></dd></div>`;
+        $("detailContent").textContent = "（静态页面，正文请在打开链接后查看）";
+        $("detailImages").innerHTML = "";
+        $("detailOpen").href = staticItem.url;
+        $("btnDelete").classList.add("hidden");
+        $("detailModal").classList.add("open");
+        return;
+      }
+      $("btnDelete").classList.remove("hidden");
       try {
         const d = await api(`/api/admin/share/${id}`);
         $("detailTitle").textContent = d.title || id;
@@ -298,9 +361,11 @@
           <div><dt>ID</dt><dd>${esc(d.id)}</dd></div>
           <div><dt>创建时间</dt><dd>${fmtTime(d.created)}</dd></div>
           <div><dt>剧本</dt><dd>${esc(d.script || "-")}</dd></div>
-          <div><dt>作者 → 对象</dt><dd>${esc(d.me || "-")} → ${esc(d.target || "-")}</dd></div>
+          <div><dt>作者</dt><dd>${esc(d.author || "-")}</dd></div>
+          <div><dt>角色 → 对象</dt><dd>${esc(d.me || "-")} → ${esc(d.target || "-")}</dd></div>
           <div><dt>公开</dt><dd>${d.public ? "是" : "否"}</dd></div>
           <div><dt>数据大小</dt><dd>${(d.payloadSize / 1024).toFixed(1)} KB</dd></div>
+          <div><dt>阅读次数</dt><dd>${d.views ?? 0}</dd></div>
           <div><dt>主题</dt><dd>${esc(d.theme?.preset || d.theme || "-")}</dd></div>
           <div><dt>链接</dt><dd><a class="link" href="${esc(d.url)}" target="_blank">${esc(d.url)}</a></dd></div>`;
         $("detailContent").textContent = d.content || "";
@@ -314,12 +379,21 @@
 
     async function deleteCurrent() {
       if (!currentId || !confirm(`确定删除 ${currentId} ？此操作不可恢复`)) return;
+      const id = currentId;
+      $("btnDelete").disabled = true;
       try {
-        await api(`/api/admin/share/${currentId}`, { method: "DELETE" });
+        await api(`/api/admin/share/${encodeURIComponent(id)}`, { method: "DELETE" });
+        pendingDeletes.add(id);
+        allItems = allItems.filter((item) => item.id !== id);
+        currentId = "";
         $("detailModal").classList.remove("open");
-        await loadAll();
+        renderTable();
+        await loadStats();
+        setTimeout(() => pendingDeletes.delete(id), 60000);
       } catch (err) {
         $("detailErr").textContent = err.message;
+      } finally {
+        $("btnDelete").disabled = false;
       }
     }
 

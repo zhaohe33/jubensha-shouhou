@@ -443,7 +443,7 @@
   </style>
 </head>
 <body>
-<a href="../../../../browse/" style="position:fixed;top:1rem;left:1rem;z-index:50;color:rgba(239,230,214,.7);text-decoration:none;font-size:.82rem;letter-spacing:.22em;font-family:Noto Serif SC,Songti SC,serif;padding:.45rem .75rem;border:1px solid rgba(239,230,214,.18);background:rgba(16,14,12,.55);backdrop-filter:blur(8px)">← 返回合集</a>
+<a href="../../../../index.html" style="position:fixed;top:1rem;left:1rem;z-index:50;color:rgba(239,230,214,.7);text-decoration:none;font-size:.82rem;letter-spacing:.22em;font-family:Noto Serif SC,Songti SC,serif;padding:.45rem .75rem;border:1px solid rgba(239,230,214,.18);background:rgba(16,14,12,.55);backdrop-filter:blur(8px)">← 返回合集</a>
 
   <div class="wrap">
     <header class="hero">
@@ -689,6 +689,14 @@
     if (localStorage.getItem("wuning-bgm") === "on") {
       playMusic();
     }
+  </script>
+  <script>
+    fetch("/api/view", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ page: "static", path: "pages/\u8d2a\u6b22/\u6797\u6c5f/\u6b66\u5b81" }),
+      keepalive: true,
+    }).catch(() => {});
   </script>
 </body>
 </html>

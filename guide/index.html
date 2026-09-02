@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>使用教程 · 剧本杀售后</title>
+  <style>
+    :root {
+      --ink: #100e0c;
+      --paper: #efe6d6;
+      --paper-soft: #cfc3ae;
+      --seal: #9c2f2a;
+      --line: rgba(239, 230, 214, 0.2);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: var(--ink);
+      color: var(--paper);
+      line-height: 1.6;
+    }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 1.2rem 1rem 3rem; }
+    h1 { font-size: 1.6rem; letter-spacing: 0.1em; margin-bottom: 0.4rem; }
+    .lead { color: var(--paper-soft); font-size: 0.88rem; margin-bottom: 1rem; }
+    .nav { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 1.5rem; }
+    .nav a {
+      color: var(--paper); text-decoration: none;
+      border: 1px solid var(--line); padding: 0.4rem 0.75rem; font-size: 0.8rem;
+    }
+    section { margin-bottom: 2rem; }
+    section h2 { font-size: 0.95rem; color: #d4847f; margin-bottom: 0.5rem; }
+    .shot { position: relative; border: 1px solid var(--line); overflow: hidden; }
+    .shot img { display: block; width: 100%; height: auto; }
+    .box {
+      position: absolute;
+      border: 2px solid var(--seal);
+      border-radius: 10px;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.25);
+      pointer-events: none;
+    }
+    .note {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 92%;
+      padding: 0.45rem 0.6rem;
+      background: rgba(16, 14, 12, 0.9);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      text-align: center;
+      color: var(--paper);
+      pointer-events: none;
+    }
+    .dl { margin-top: 0.5rem; font-size: 0.78rem; color: var(--paper-soft); }
+    .dl a { color: #d4847f; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>使用教程</h1>
+    <p class="lead">就三点，看图上的红框和说明就行。</p>
+    <nav class="nav">
+      <a href="/">首页</a>
+      <a href="/create/">去创作</a>
+    </nav>
+
+    <section>
+      <h2>创作</h2>
+      <div class="shot" id="shot1"></div>
+      <p class="dl"><a href="annotated/IMG_0482.jpeg" download>下载标注图</a></p>
+    </section>
+
+    <section>
+      <h2>生成链接后</h2>
+      <div class="shot" id="shot2"></div>
+      <p class="dl"><a href="annotated/IMG_0483.png" download>下载标注图</a></p>
+    </section>
+
+    <section>
+      <h2>发给好友</h2>
+      <div class="shot" id="shot3"></div>
+      <p class="dl"><a href="annotated/IMG_0484.png" download>下载标注图</a></p>
+    </section>
+  </div>
+
+  <script>
+    const STEPS = [
+      {
+        img: "../IMG_0482.jpeg",
+        shot: "shot1",
+        items: [
+          { box: [8, 42.8, 22, 2.8], text: "可以直接写 [图1]，或在下方图片点「插入正文」", noteTop: 46.5 },
+          { box: [6, 48, 88, 14], text: "十种默认配色，也可以自定义颜色", noteTop: 63 },
+        ],
+      },
+      {
+        img: "../IMG_0483.png",
+        shot: "shot2",
+        items: [
+          { box: [62, 59, 32, 5], text: "可分享至朋友圈、小红书、抖音等", noteTop: 66 },
+        ],
+      },
+      {
+        img: "../IMG_0484.png",
+        shot: "shot3",
+        items: [
+          { box: [8, 18, 84, 22], text: "好友会直接收到带标题、正文和图片的链接", noteTop: 42 },
+        ],
+      },
+    ];
+
+    for (const step of STEPS) {
+      const shot = document.getElementById(step.shot);
+      const img = document.createElement("img");
+      img.src = step.img;
+      img.alt = step.shot;
+      img.loading = "lazy";
+      shot.appendChild(img);
+      for (const item of step.items) {
+        const box = document.createElement("div");
+        box.className = "box";
+        const [l, t, w, h] = item.box;
+        box.style.left = l + "%";
+        box.style.top = t + "%";
+        box.style.width = w + "%";
+        box.style.height = h + "%";
+        shot.appendChild(box);
+
+        const note = document.createElement("div");
+        note.className = "note";
+        note.style.top = item.noteTop + "%";
+        note.textContent = item.text;
+        shot.appendChild(note);
+      }
+    }
+  </script>
+</body>
+</html>

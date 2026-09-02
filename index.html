@@ -15,6 +15,7 @@
       --paper-soft: #cfc3ae;
       --fade: rgba(239, 230, 214, 0.55);
       --seal: #9c2f2a;
+      --seal-soft: rgba(156, 47, 42, 0.55);
       --line: rgba(239, 230, 214, 0.16);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,7 +24,7 @@
       color: var(--paper);
       background: var(--ink);
       line-height: 1.55;
-      min-height: 100vh;
+      overflow-x: hidden;
     }
     body::before {
       content: "";
@@ -31,17 +32,55 @@
       background:
         radial-gradient(ellipse 80% 55% at 12% 8%, rgba(120, 48, 40, 0.22), transparent 55%),
         radial-gradient(ellipse 70% 50% at 88% 18%, rgba(70, 58, 40, 0.2), transparent 50%),
+        radial-gradient(ellipse 90% 55% at 50% 100%, rgba(40, 34, 28, 0.55), transparent 60%),
         linear-gradient(180deg, #0c0a09 0%, #14110e 45%, #0f0d0b 100%);
     }
-    .page { position: relative; z-index: 2; max-width: 920px; margin: 0 auto; padding: 1.6rem 1rem 3rem; }
-    .top { text-align: center; }
+    body::after {
+      content: "";
+      position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.055;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    .page { position: relative; z-index: 2; }
+    .top {
+      text-align: center;
+      padding: 1.6rem 1rem 1rem;
+    }
     .top-brand {
       font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(2.4rem, 9vw, 3.6rem);
+      font-size: clamp(2.2rem, 8vw, 3.2rem);
       letter-spacing: 0.2em; line-height: 1; margin-left: 0.2em;
     }
-    .top-line { width: 1.8rem; height: 1px; margin: 0.75rem auto 0.65rem; background: var(--seal); }
-    .top-lead { font-size: 0.88rem; letter-spacing: 0.18em; color: var(--paper-soft); }
+    .top-line {
+      width: 1.8rem; height: 1px; margin: 0.75rem auto 0.65rem; background: var(--seal);
+    }
+    .top-lead {
+      font-size: 0.85rem; letter-spacing: 0.2em; color: var(--paper-soft);
+    }
+    .top-count {
+      margin-top: 0.35rem; font-size: 0.72rem; letter-spacing: 0.24em; color: var(--fade);
+    }
+    .top-actions {
+      margin-top: 1.1rem;
+      display: flex;
+      justify-content: center;
+    }
+    .create-cta {
+      display: inline-block;
+      padding: 0.8rem 2.4rem;
+      border: 1px solid rgba(156, 47, 42, 0.7);
+      background: rgba(156, 47, 42, 0.32);
+      color: var(--paper);
+      text-decoration: none;
+      font-family: "Ma Shan Zheng", cursive;
+      font-size: clamp(1.1rem, 4vw, 1.35rem);
+      letter-spacing: 0.2em;
+      transition: border-color .25s, background .25s, transform .25s;
+    }
+    .create-cta:hover {
+      border-color: rgba(156, 47, 42, 0.9);
+      background: rgba(156, 47, 42, 0.48);
+      transform: translateY(-1px);
+    }
     
     .site-nav {
       display: flex; justify-content: center; flex-wrap: wrap; gap: 0.45rem;
@@ -67,62 +106,155 @@
       background: rgba(156, 47, 42, 0.22);
     }
 
-    .features {
+    .filters {
+      max-width: 1100px;
+      margin: 0 auto 0.75rem;
+      padding: 0 1rem;
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.85rem;
-      margin-top: 2rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+      gap: 0.5rem;
+      align-items: end;
     }
-    .feature {
+    .filter label {
+      display: block;
+      font-size: 0.68rem;
+      letter-spacing: 0.16em;
+      color: var(--fade);
+      margin-bottom: 0.3rem;
+    }
+    .filter select {
+      width: 100%;
+      background: rgba(28, 24, 20, 0.72);
+      border: 1px solid var(--line);
+      color: var(--paper);
+      padding: 0.5rem 0.55rem;
+      font-family: inherit;
+      font-size: 0.82rem;
+      border-radius: 2px;
+      appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, var(--fade) 50%), linear-gradient(135deg, var(--fade) 50%, transparent 50%);
+      background-position: calc(100% - 14px) 52%, calc(100% - 9px) 52%;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+    }
+    .filter select:focus { outline: none; border-color: rgba(239, 230, 214, 0.45); }
+    .filter-reset {
+      border: 1px solid rgba(239, 230, 214, 0.22);
+      background: transparent;
+      color: var(--fade);
+      padding: 0.5rem 0.75rem;
+      font-family: inherit;
+      font-size: 0.76rem;
+      letter-spacing: 0.14em;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .filter-reset:hover { color: var(--paper); border-color: rgba(239, 230, 214, 0.5); }
+    .filter-empty {
+      display: none;
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--fade);
+      letter-spacing: 0.12em;
+      font-size: 0.88rem;
+    }
+    .filter-empty.visible { display: block; }
+    .entry.is-hidden { display: none !important; }
+    .entry-user .entry-seal { border-color: rgba(239, 230, 214, 0.35); color: var(--paper-soft); }
+    .entry-badge {
+      position: absolute; left: 0.55rem; top: 0.55rem; z-index: 2;
+      font-size: 0.62rem; letter-spacing: 0.12em; padding: 0.2rem 0.4rem;
+      border: 1px solid rgba(239, 230, 214, 0.28); color: var(--fade);
+      background: rgba(16, 14, 12, 0.65); pointer-events: none;
+    }
+    .collection {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0.2rem 1rem 3rem;
+    }
+    .entries {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    .entry {
+      position: relative;
       display: flex;
       flex-direction: column;
       text-decoration: none;
       color: inherit;
+      overflow: hidden;
       border: 1px solid var(--line);
       background: rgba(28, 24, 20, 0.55);
-      padding: 1.35rem 1.1rem 1.2rem;
-      min-height: 220px;
-      transition: border-color .25s, transform .25s, background .25s;
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
     }
-    .feature:hover {
-      border-color: rgba(239, 230, 214, 0.35);
-      background: rgba(36, 30, 26, 0.72);
+    .entry:hover {
+      border-color: rgba(239, 230, 214, 0.4);
+      background: rgba(36, 30, 24, 0.78);
       transform: translateY(-2px);
     }
-    .feature-tag {
-      font-size: 0.68rem;
-      letter-spacing: 0.24em;
-      color: rgba(156, 47, 42, 0.9);
-      margin-bottom: 0.65rem;
+    .entry-visual {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      background: #1a1612;
     }
-    .feature h2 {
+    .entry-visual img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transition: transform 0.8s ease; filter: saturate(0.88) contrast(1.04);
+    }
+    .entry:hover .entry-visual img { transform: scale(1.06); }
+    .entry-visual--plain {
+      display: grid; place-items: center;
+      font-family: "Ma Shan Zheng", cursive; font-size: 1.8rem; color: rgba(239,230,214,.28);
+      letter-spacing: 0.18em;
+    }
+    .entry-body {
+      display: flex; flex-direction: column; gap: 0.2rem;
+      padding: 0.7rem 0.75rem 0.85rem;
+    }
+    .entry-script {
+      font-size: 0.68rem; letter-spacing: 0.12em; color: var(--seal);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .entry-author {
+      font-size: 0.72rem; letter-spacing: 0.08em; color: var(--paper-soft);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .entry-name {
       font-family: "Ma Shan Zheng", cursive;
-      font-size: clamp(1.6rem, 5vw, 2rem);
-      letter-spacing: 0.14em;
-      margin-bottom: 0.55rem;
-      margin-left: 0.08em;
+      font-size: clamp(1.25rem, 2.4vw, 1.55rem);
+      letter-spacing: 0.1em; margin-left: 0.06em; line-height: 1.2;
     }
-    .feature p {
-      color: var(--paper-soft);
-      font-size: 0.86rem;
-      letter-spacing: 0.06em;
-      line-height: 1.7;
-      flex: 1;
+    .entry-blurb {
+      color: var(--paper-soft); font-size: 0.78rem; letter-spacing: 0.02em;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
     }
-    .feature-cta {
-      margin-top: 1rem;
-      font-size: 0.78rem;
-      letter-spacing: 0.2em;
-      color: var(--fade);
+    .entry-seal {
+      position: absolute; top: 0.55rem; right: 0.55rem; width: 1.9rem; height: 1.9rem;
+      border: 1px solid var(--seal-soft); color: var(--seal);
+      display: grid; place-items: center; font-family: "Ma Shan Zheng", cursive;
+      font-size: 0.78rem; transform: rotate(12deg); opacity: 0.75; pointer-events: none;
+      background: rgba(16,14,12,.35);
     }
-    .feature:hover .feature-cta { color: var(--paper); }
     footer {
-      text-align: center; margin-top: 2rem;
+      text-align: center; padding: 0 1rem 2rem;
       color: rgba(239, 230, 214, 0.35); font-size: 0.72rem; letter-spacing: 0.2em;
     }
-    @media (max-width: 640px) {
-      .features { grid-template-columns: 1fr; }
-      .feature { min-height: 0; }
+    @media (max-width: 900px) {
+      .entries { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+      .filters { grid-template-columns: 1fr 1fr; }
+      .filter-reset { grid-column: 1 / -1; }
+    }
+    @media (max-width: 520px) {
+      .entries { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+      .entry-body { padding: 0.55rem 0.55rem 0.7rem; }
+      .entry-blurb { -webkit-line-clamp: 1; }
+      .top { padding: 1.2rem 0.8rem 0.7rem; }
+      .collection { padding: 0.1rem 0.7rem 2.2rem; }
+      .filters { grid-template-columns: 1fr; padding: 0 0.7rem; }
     }
   </style>
 </head>
@@ -132,30 +264,410 @@
       <h1 class="top-brand">售后</h1>
       <div class="top-line" aria-hidden="true"></div>
       <p class="top-lead">局终之后，信仍未完</p>
-      
-    <nav class="site-nav" aria-label="站点导航">
-      <a class="site-nav__link is-active" href="index.html">首页</a>
-      <a class="site-nav__link" href="browse/">公开售后</a>
-      <a class="site-nav__link" href="create/">创作售后</a>
-    </nav>
+      <p class="top-count" id="resultCount">共 13 封</p>
+      <div class="top-actions">
+        <a class="create-cta" href="create/">创作售后</a>
+      </div>
     </header>
 
-    <main class="features">
-      <a class="feature" href="browse/">
-        <p class="feature-tag">功能一</p>
-        <h2>公开售后</h2>
-        <p>浏览目前已公开的 13 封售后信。按剧本与角色整理，点击进入沉浸式阅读。</p>
-        <span class="feature-cta">进入合集 →</span>
-      </a>
-      <a class="feature" href="create/">
-        <p class="feature-tag">功能二</p>
-        <h2>创作售后</h2>
-        <p>上传文字与配图，一键生成你的售后网页，并分享至微信、抖音、小红书。</p>
-        <span class="feature-cta">开始创作 →</span>
-      </a>
+    <form class="filters" id="filters" aria-label="筛选售后">
+      <div class="filter">
+        <label for="filterScript">剧本</label>
+        <select id="filterScript" name="script">
+          <option value="">全部</option>
+          <option value="如故">如故</option>
+          <option value="暗夜降至">暗夜降至</option>
+          <option value="洗劫伦敦所有的玫瑰">洗劫伦敦所有的玫瑰</option>
+          <option value="洗劫罗马所有的情书">洗劫罗马所有的情书</option>
+          <option value="流氓叙事">流氓叙事</option>
+          <option value="空山">空山</option>
+          <option value="贪欢">贪欢</option>
+          <option value="青白">青白</option>
+        </select>
+      </div>
+      <div class="filter">
+        <label for="filterMe">角色名</label>
+        <select id="filterMe" name="me">
+          <option value="">全部</option>
+        </select>
+      </div>
+      <div class="filter">
+        <label for="filterTarget">送给谁</label>
+        <select id="filterTarget" name="target">
+          <option value="">全部</option>
+        </select>
+      </div>
+      <button class="filter-reset" type="button" id="filterReset">重置</button>
+    </form>
+
+    <main class="collection" id="collection">
+      <div class="entries" id="entries">
+        
+        <a class="entry" href="pages/如故/李文瑙/卫子谣/index.html" data-script="如故" data-author="Yolo" data-me="李文瑙" data-target="卫子谣">
+          <div class="entry-visual"><img src="media/duos/ruguy-liwennao-weiziyao.jpg" alt="" loading="lazy" /></div>
+          <div class="entry-body">
+            <p class="entry-script">如故 · 李文瑙</p>
+            <p class="entry-author">Yolo</p>
+            <h3 class="entry-name">致卫子谣</h3>
+            <p class="entry-blurb">自那场生死棋局一别，便再无音讯，你近来可好？轮回将至，有…</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">如故</div>
+        </a>
+        <a class="entry" href="pages/如故/李文瑙/连世疆/index.html" data-script="如故" data-author="Yolo" data-me="李文瑙" data-target="连世疆">
+          <div class="entry-visual"><img src="media/duos/ruguy-liwennao-lianshijiang.jpg" alt="" loading="lazy" /></div>
+          <div class="entry-body">
+            <p class="entry-script">如故 · 李文瑙</p>
+            <p class="entry-author">Yolo</p>
+            <h3 class="entry-name">致连世疆</h3>
+            <p class="entry-blurb">哥哥，算了——我还是更喜欢叫你弟弟。</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">如故</div>
+        </a>
+        <a class="entry" href="pages/暗夜降至/车允智/金在秀/index.html" data-script="暗夜降至" data-author="Yolo" data-me="车允智" data-target="金在秀">
+          <div class="entry-visual"><img src="media/duos/anye-cheyunzhi-jinzaixiu.jpg" alt="" loading="lazy" /></div>
+          <div class="entry-body">
+            <p class="entry-script">暗夜降至 · 车允智</p>
+            <p class="entry-author">Yolo</p>
+            <h3 class="entry-name">致金在秀</h3>
+            <p class="entry-blurb">视频售后</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">暗夜</div>
+        </a>
+        <a class="entry" href="pages/洗劫伦敦所有的玫瑰/阿尔芒/斯黛拉/index.html" data-script="洗劫伦敦所有的玫瑰" data-author="Yolo" data-me="阿尔芒" data-target="斯黛拉">
+          <div class="entry-visual"><img src="media/duos/lundun-aermang-sidaila.jpg" alt="" loading="lazy" /></div>
+          <div class="entry-body">
+            <p class="entry-script">洗劫伦敦所有的玫瑰 · 阿尔芒</p>
+            <p class="entry-author">Yolo</p>
+            <h3 class="entry-name">致斯黛拉</h3>
+            <p class="entry-blurb">斯黛拉，见字如面。</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">洗劫</div>
+        </a>
+        <a class="entry" href="pages/洗劫罗马所有的情书/维托/黛琳/index.html" data-script="洗劫罗马所有的情书" data-author="Yolo" data-me="维托" data-target="黛琳">
+          <div class="entry-visual"><img src="media/duos/luoma-weituo-dailin.jpg" alt="" loading="lazy" /></div>
+          <div class="entry-body">
+            <p class="entry-script">洗劫罗马所有的情书 · 维托</p>
+            <p class="entry-author">Yolo</p>
+            <h3 class="entry-name">致黛琳</h3>
+            <p class="entry-blurb">亲爱的黛琳</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">洗劫</div>
+        </a>
+        <a class="entry" href="pages/流氓叙事/程聿怀/黛利拉/index.html" data-script="流氓叙事" data-author="Yolo" data-me="程聿怀" data-target="黛利拉">
+          <div class="entry-visual"><img src="media/duos/liumang-chengyuhuai-dailila.jpg" alt="" loading="lazy" /></div>
+          <div class="entry-body">
+            <p class="entry-script">流氓叙事 · 程聿怀</p>
+            <p class="entry-author">Yolo</p>
+            <h3 class="entry-name">致黛利拉</h3>
+            <p class="entry-blurb">没想到吧，你竟会收到我的来信。</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">流氓</div>
+        </a>
+        <a class="entry" href="pages/流氓叙事/程聿怀/程走柳/index.html" data-script="流氓叙事" data-author="Yolo" data-me="程聿怀" data-target="程走柳">
+          <div class="entry-visual"><img src="media/duos/liumang-chengyuhuai-chengzouliu.jpg" alt="" loading="lazy" /></div>
+          <div class="entry-body">
+            <p class="entry-script">流氓叙事 · 程聿怀</p>
+            <p class="entry-author">Yolo</p>
+            <h3 class="entry-name">致程走柳</h3>
+            <p class="entry-blurb">程走柳，我的同怀</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">流氓</div>
+        </a>
+        <a class="entry" href="pages/流氓叙事/蒋伯驾/程走柳/index.html" data-script="流氓叙事" data-author="Yolo" data-me="蒋伯驾" data-target="程走柳">
+          <div class="entry-visual"><img src="media/duos/liumang-jiangbojia-chengzouliu.jpg" alt="" loading="lazy" /></div>
+          <div class="entry-body">
+            <p class="entry-script">流氓叙事 · 蒋伯驾</p>
+            <p class="entry-author">Yolo</p>
+            <h3 class="entry-name">致程走柳</h3>
+            <p class="entry-blurb">在蒋伯驾去世后的几个月里，程走柳始终沉浸在悲伤之中，迟迟…</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">流氓</div>
+        </a>
+        <a class="entry" href="pages/流氓叙事/蒋伯驾/缪宏谟/index.html" data-script="流氓叙事" data-author="Yolo" data-me="蒋伯驾" data-target="缪宏谟">
+          <div class="entry-visual"><img src="media/duos/liumang-jiangbojia-miaohongmo.jpg" alt="" loading="lazy" /></div>
+          <div class="entry-body">
+            <p class="entry-script">流氓叙事 · 蒋伯驾</p>
+            <p class="entry-author">Yolo</p>
+            <h3 class="entry-name">致缪宏谟</h3>
+            <p class="entry-blurb">蒋伯驾离世没过多久，缪宏谟便收到了一封匿名寄出的角膜捐献…</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">流氓</div>
+        </a>
+        <a class="entry" href="pages/空山/李逸/花想容/index.html" data-script="空山" data-author="Yolo" data-me="李逸" data-target="花想容">
+          <div class="entry-visual"><img src="media/duos/kongshan-liyi-huaxiangrong.jpg" alt="" loading="lazy" /></div>
+          <div class="entry-body">
+            <p class="entry-script">空山 · 李逸</p>
+            <p class="entry-author">Yolo</p>
+            <h3 class="entry-name">致花想容</h3>
+            <p class="entry-blurb">视频售后</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">空山</div>
+        </a>
+        <a class="entry" href="pages/空山/李逸/阿绿姑娘/index.html" data-script="空山" data-author="Yolo" data-me="李逸" data-target="阿绿姑娘">
+          <div class="entry-visual"><img src="media/duos/kongshan-liyi-aluniang.jpg" alt="" loading="lazy" /></div>
+          <div class="entry-body">
+            <p class="entry-script">空山 · 李逸</p>
+            <p class="entry-author">Yolo</p>
+            <h3 class="entry-name">致阿绿姑娘</h3>
+            <p class="entry-blurb">视频售后</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">空山</div>
+        </a>
+        <a class="entry" href="pages/贪欢/林江/武宁/index.html" data-script="贪欢" data-author="Yolo" data-me="林江" data-target="武宁">
+          <div class="entry-visual"><img src="media/duos/tanhuan-linjiang-wuning.jpg" alt="" loading="lazy" /></div>
+          <div class="entry-body">
+            <p class="entry-script">贪欢 · 林江</p>
+            <p class="entry-author">Yolo</p>
+            <h3 class="entry-name">致武宁</h3>
+            <p class="entry-blurb">图文售后</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">贪欢</div>
+        </a>
+        <a class="entry" href="pages/青白/苏无恙/阿喜/index.html" data-script="青白" data-author="Yolo" data-me="苏无恙" data-target="阿喜">
+          <div class="entry-visual"><img src="media/duos/qingbai-suwuyang-axi.jpg" alt="" loading="lazy" /></div>
+          <div class="entry-body">
+            <p class="entry-script">青白 · 苏无恙</p>
+            <p class="entry-author">Yolo</p>
+            <h3 class="entry-name">致阿喜</h3>
+            <p class="entry-blurb">胆小鬼，欢迎回到现实世界。</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">青白</div>
+        </a>
+      </div>
+      <p class="filter-empty" id="filterEmpty">没有符合筛选条件的售后</p>
     </main>
 
-    <footer>剧本杀售后</footer>
+    <footer>剧本杀售后合集</footer>
   </div>
+  <script>
+    (function () {
+      const builtinTotal = 13;
+      const facets = {"如故": {"李文瑙": ["卫子谣", "连世疆"]}, "暗夜降至": {"车允智": ["金在秀"]}, "洗劫伦敦所有的玫瑰": {"阿尔芒": ["斯黛拉"]}, "洗劫罗马所有的情书": {"维托": ["黛琳"]}, "流氓叙事": {"程聿怀": ["程走柳", "黛利拉"], "蒋伯驾": ["程走柳", "缪宏谟"]}, "空山": {"李逸": ["花想容", "阿绿姑娘"]}, "贪欢": {"林江": ["武宁"]}, "青白": {"苏无恙": ["阿喜"]}};
+      let entries = Array.from(document.querySelectorAll(".entry"));
+      const scriptEl = document.getElementById("filterScript");
+      const meEl = document.getElementById("filterMe");
+      const targetEl = document.getElementById("filterTarget");
+      const resetEl = document.getElementById("filterReset");
+      const countEl = document.getElementById("resultCount");
+      const emptyEl = document.getElementById("filterEmpty");
+      const entriesEl = document.getElementById("entries");
+
+      function readParams() {
+        const p = new URLSearchParams(location.search);
+        return {
+          script: p.get("script") || "",
+          me: p.get("me") || p.get("author") || "",
+          target: p.get("target") || "",
+        };
+      }
+
+      function writeParams(script, me, target) {
+        const p = new URLSearchParams();
+        if (script) p.set("script", script);
+        if (me) p.set("me", me);
+        if (target) p.set("target", target);
+        const qs = p.toString();
+        history.replaceState(null, "", qs ? ("?" + qs) : location.pathname);
+      }
+
+      function sortedUnique(values) {
+        return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, "zh-CN"));
+      }
+
+      function mergeFacet(script, me, target) {
+        if (!script || !me) return;
+        if (!facets[script]) facets[script] = {};
+        if (!facets[script][me]) facets[script][me] = [];
+        if (target && !facets[script][me].includes(target)) {
+          facets[script][me].push(target);
+          facets[script][me].sort((a, b) => a.localeCompare(b, "zh-CN"));
+        }
+      }
+
+      function getMeOptions(script) {
+        if (!script) {
+          const all = [];
+          for (const s of Object.keys(facets)) {
+            all.push(...Object.keys(facets[s] || {}));
+          }
+          return sortedUnique(all);
+        }
+        return sortedUnique(Object.keys(facets[script] || {}));
+      }
+
+      function getTargetOptions(script, me) {
+        if (script && me) {
+          return sortedUnique((facets[script] && facets[script][me]) || []);
+        }
+        if (script) {
+          const all = [];
+          for (const m of Object.keys(facets[script] || {})) {
+            all.push(...(facets[script][m] || []));
+          }
+          return sortedUnique(all);
+        }
+        if (me) {
+          const all = [];
+          for (const s of Object.keys(facets)) {
+            if (facets[s][me]) all.push(...facets[s][me]);
+          }
+          return sortedUnique(all);
+        }
+        const all = [];
+        for (const s of Object.keys(facets)) {
+          for (const m of Object.keys(facets[s] || {})) {
+            all.push(...(facets[s][m] || []));
+          }
+        }
+        return sortedUnique(all);
+      }
+
+      function rebuildSelect(el, values, keepValue) {
+        const prev = keepValue ? el.value : "";
+        el.innerHTML = '<option value="">全部</option>';
+        for (const v of values) {
+          const opt = document.createElement("option");
+          opt.value = v;
+          opt.textContent = v;
+          el.appendChild(opt);
+        }
+        if (prev && values.includes(prev)) el.value = prev;
+        else el.value = "";
+      }
+
+      function syncFilterOptions(keepValues) {
+        rebuildSelect(meEl, getMeOptions(scriptEl.value), keepValues);
+        rebuildSelect(targetEl, getTargetOptions(scriptEl.value, meEl.value), keepValues);
+      }
+
+      function ensureOption(select, value) {
+        if (!value) return;
+        for (const opt of select.options) {
+          if (opt.value === value) return;
+        }
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = value;
+        select.appendChild(opt);
+        const options = Array.from(select.options).slice(1);
+        options.sort((a, b) => a.value.localeCompare(b.value, "zh-CN"));
+        select.innerHTML = '<option value="">全部</option>';
+        options.forEach((o) => select.appendChild(o));
+      }
+
+      function esc(s) {
+        return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+      }
+
+      function createUserCard(item) {
+        const script = item.script || "玩家创作";
+        const author = item.author || "";
+        const me = item.me || "";
+        const target = item.target || "";
+        const seal = esc(script.slice(0, 2) || "信");
+        const visual = item.hasImage
+          ? `<div class="entry-visual"><img src="/api/img/${esc(item.id)}" alt="" loading="lazy" /></div>`
+          : '<div class="entry-visual entry-visual--plain"><span>信</span></div>';
+        const card = document.createElement("a");
+        card.className = "entry entry-user";
+        card.href = `/p/${esc(item.id)}`;
+        card.dataset.script = script;
+        card.dataset.author = author;
+        card.dataset.me = me;
+        card.dataset.target = target;
+        card.innerHTML = `
+          <span class="entry-badge">玩家</span>
+          ${visual}
+          <div class="entry-body">
+            <p class="entry-script">${esc(script)}${me ? ` · ${esc(me)}` : ""}</p>
+            ${author ? `<p class="entry-author">${esc(author)}</p>` : ""}
+            <h3 class="entry-name">${esc(item.title)}</h3>
+            <p class="entry-blurb">${esc(item.blurb || "")}</p>
+          </div>
+          <div class="entry-seal" aria-hidden="true">${seal}</div>`;
+        return card;
+      }
+
+      function applyFilters() {
+        const script = scriptEl.value;
+        const me = meEl.value;
+        const target = targetEl.value;
+        let visible = 0;
+        entries.forEach((el) => {
+          const ok =
+            (!script || el.dataset.script === script) &&
+            (!me || el.dataset.me === me) &&
+            (!target || el.dataset.target === target);
+          el.classList.toggle("is-hidden", !ok);
+          if (ok) visible++;
+        });
+        const total = entries.length;
+        countEl.textContent = visible === total
+          ? `共 ${total} 封`
+          : `显示 ${visible} / ${total} 封`;
+        emptyEl.classList.toggle("visible", visible === 0);
+        writeParams(script, me, target);
+      }
+
+      function setSelect(el, value) {
+        if (!value) return;
+        ensureOption(el, value);
+        el.value = value;
+      }
+
+      async function loadPublicEntries() {
+        try {
+          const res = await fetch("/api/public");
+          if (!res.ok) return;
+          const items = await res.json();
+          for (const item of items) {
+            const script = item.script || "玩家创作";
+            ensureOption(scriptEl, script);
+            mergeFacet(script, item.me, item.target);
+            const card = createUserCard(item);
+            entriesEl.appendChild(card);
+            entries.push(card);
+          }
+        } catch {
+          /* ignore */
+        }
+        syncFilterOptions(true);
+        applyFilters();
+      }
+
+      const initial = readParams();
+      setSelect(scriptEl, initial.script);
+      syncFilterOptions(false);
+      setSelect(meEl, initial.me);
+      rebuildSelect(targetEl, getTargetOptions(scriptEl.value, meEl.value), false);
+      setSelect(targetEl, initial.target);
+
+      scriptEl.addEventListener("change", () => {
+        syncFilterOptions(true);
+        applyFilters();
+      });
+      meEl.addEventListener("change", () => {
+        rebuildSelect(targetEl, getTargetOptions(scriptEl.value, meEl.value), true);
+        applyFilters();
+      });
+      targetEl.addEventListener("change", applyFilters);
+      resetEl.addEventListener("click", () => {
+        scriptEl.value = "";
+        meEl.value = "";
+        targetEl.value = "";
+        syncFilterOptions(false);
+        applyFilters();
+      });
+
+      applyFilters();
+      loadPublicEntries();
+      fetch("/api/view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ page: "home" }),
+        keepalive: true,
+      }).catch(() => {});
+    })();
+  </script>
 </body>
 </html>
